@@ -303,12 +303,12 @@ When `stream: true`, the final `completed` event contains:
 
 | Plan | Rate Limit | Monthly Quota |
 |------|-----------|---------------|
-| **Free** | 1 request/second | 100 total API calls |
-| **Starter** | 1 request/second | 400 API calls/month |
-| **Pro** | 1 request/second | 2,000 API calls/month |
+| **Free** | 1 request/second | 10 total API calls |
+| **Starter** | 1 request/second | 100 API calls/month |
+| **Pro** | 1 request/second | 1,000 API calls/month |
 | **Enterprise** | Custom | Custom — [enterprise.geoseeer.com](https://enterprise.geoseeer.com) |
 
-> Starter and Pro plans support automatic overage billing at **$0.05 per additional API call** beyond the monthly limit.
+> Starter and Pro plans support automatic overage billing at **$0.20 per additional API call** beyond the monthly limit.
 
 ---
 
@@ -461,9 +461,9 @@ curl -X POST https://geoseeer.com/api/v1/analyze \
 
 | Plan | Monthly Price | API Calls | Overage |
 |------|--------------|-----------|---------|
-| Free | $0 | 100 total | — |
-| Starter | $19/mo ($9/mo annual) | 400/month | $0.05/call |
-| Pro | $69/mo ($29/mo annual) | 2,000/month | $0.05/call |
+| Free | $0 | 10 total | — |
+| Starter | $19/mo ($9/mo annual) | 100/month | $0.20/call |
+| Pro | $69/mo ($29/mo annual) | 1,000/month | $0.20/call |
 | Enterprise | Custom | Custom | Custom |
 
 View full pricing at [geoseeer.com](https://geoseeer.com/#pricing).

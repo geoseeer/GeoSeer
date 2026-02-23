@@ -28,7 +28,7 @@ GeoSeer's multi-agent pipeline consists of:
 ## Features
 
 - 🧠 **Multi-Agent AI Architecture** — Advanced multi-step reasoning with tool calling for pinpoint accuracy
-- ⚡ **Dual Processing Modes** — GS-Fast (~5s, rapid estimation) and GS-Agent (~27s, comprehensive analysis)
+- ⚡ **Dual Processing Modes** — GS-Fast (~10s, rapid estimation) and GS-Agent (~30-60s, comprehensive analysis)
 - 🌐 **Global Coverage** — Geolocate photos from anywhere on Earth
 - 🔒 **Privacy-First** — Images are processed in real-time and immediately discarded after analysis
 - 🔌 **Developer API** — Simple REST API with streaming (SSE) support for easy integration
@@ -40,12 +40,11 @@ GeoSeer's multi-agent pipeline consists of:
 
 GeoSeer delivers **industry-leading performance** across all key metrics:
 
-| Metric | GeoSeer | Picarta | Gemini 3 Pro | Other |
-|--------|---------|---------|--------------|-------|
+| Metric | GeoSeer | Picarta | Avg. AI Wrappers | Other |
+|--------|---------|---------|------------------|-------|
 | **Accuracy** | **83%** | 78% | 74% | 67% (EarthKit Agent) |
-| **Cost per Query** | **$0.05** | $0.20 | $0.22 | $0.40 (Avg. AI Wrappers) |
-| **Latency (Agent)** | **27s** | 18s | 29s | 44s (EarthKit Agent) |
-| **Latency (Fast)** | **5s** | — | — | — |
+| **Cost per Query** | **$0.20** | $0.45 | $0.33 | $0.50 (Hiring Expert) |
+| **Latency (Fast)** | **10s** | 13s | 17s | 44s (EarthKit Agent) |
 
 > Benchmark: 150 diverse images (50 urban, 50 rural, 50 indoor). Success thresholds: Urban ≤1km², Rural ≤10km², Indoor ≤5km².
 
@@ -80,12 +79,12 @@ See the full [API Documentation](https://geoseeer.com/api-docs) or our [API.md](
 
 | Plan | Price | Includes |
 |------|-------|----------|
-| **Free** | $0 forever | 1 search/day on web, 100 total API calls |
-| **Starter** | $19/mo ($9/mo annual) | 400 searches/mo, 400 API calls/mo, priority processing |
-| **Pro** | $69/mo ($29/mo annual) | Unlimited web searches, 2,000 API calls/mo |
+| **Free** | $0 forever | 1 search/day on web, 10 total API calls |
+| **Starter** | $19/mo ($9/mo annual) | 100 searches/mo, 100 API calls/mo, priority processing |
+| **Pro** | $69/mo ($29/mo annual) | Unlimited web searches, 1,000 API calls/mo |
 | **Enterprise** | Custom | Custom limits, dedicated support — [enterprise.geoseeer.com](https://enterprise.geoseeer.com) |
 
-> Starter and Pro plans: $0.05 per additional API call beyond monthly limit.
+> Starter and Pro plans: $0.20 per additional API call beyond monthly limit.
 
 ---
 
