@@ -42,7 +42,7 @@ GeoSeer delivers **industry-leading performance** across all key metrics:
 
 | Metric | GeoSeer | Picarta | Avg. AI Wrappers | Other |
 |--------|---------|---------|------------------|-------|
-| **Accuracy** | **83%** | 78% | 74% | 67% (EarthKit Agent) |
+| **Accuracy** | **83%** | 54% | 35% | 47% (EarthKit Agent) |
 | **Cost per Query** | **$0.20** | $0.45 | $0.33 | $0.50 (Hiring Expert) |
 | **Latency (Fast)** | **10s** | 13s | 17s | 44s (EarthKit Agent) |
 
