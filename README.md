@@ -84,7 +84,7 @@ See the full [API Documentation](https://geoseeer.com/api-docs) or our [API.md](
 | **Pro** | $69/mo ($29/mo annual) | Unlimited web searches, 1,000 API calls/mo |
 | **Enterprise** | Custom | Custom limits, dedicated support — [enterprise.geoseeer.com](https://enterprise.geoseeer.com) |
 
-> Starter and Pro plans: $0.20 per additional API call beyond monthly limit.
+> Starter and Pro plans: $0.20 per additional call beyond monthly limit.
 
 ---
 

@@ -308,7 +308,7 @@ When `stream: true`, the final `completed` event contains:
 | **Pro** | 1 request/second | 1,000 API calls/month |
 | **Enterprise** | Custom | Custom — [enterprise.geoseeer.com](https://enterprise.geoseeer.com) |
 
-> Starter and Pro plans support automatic overage billing at **$0.20 per additional API call** beyond the monthly limit.
+> Starter and Pro plans support automatic overage billing at **$0.20 per additional call** beyond the monthly limit.
 
 ---
 
