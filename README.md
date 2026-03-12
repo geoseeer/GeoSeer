@@ -1,6 +1,6 @@
 # GeoSeer — AI-Powered Image Geolocation Platform 🌍🔍
 
-[GeoSeer](https://geoseeer.com) is a professional-grade **AI geolocation intelligence platform** that pinpoints exact locations from images with state-of-the-art accuracy. Using an advanced **multi-agent workflow**, GeoSeer performs sophisticated multi-step reasoning and tool calling to deliver professional-grade results at a fraction of the cost and time.
+[GeoSeer](https://geoseeer.com) is a professional-grade **AI geolocation intelligence platform** that pinpoints exact locations from images with state-of-the-art accuracy. Using an advanced **agentic workflow with fast and agent modes**, GeoSeer combines rapid estimation with sophisticated multi-step reasoning and tool calling to deliver professional-grade results at a fraction of the cost and time.
 
 > Upload any photo → Get precise GPS coordinates, address, and reasoning — in seconds.
 
@@ -9,15 +9,20 @@
 ## How It Works
 
 1. **Upload Image** 📤 — Upload an image via the [web interface](https://geoseeer.com) or the [REST API](https://geoseeer.com/api-docs). Supports file upload (JPG, PNG, WebP, HEIC) and image URLs.
-2. **AI Analysis** 🤖 — GeoSeer's multi-agent AI system examines visual clues — architectural styles, natural landmarks, vegetation patterns, street furniture, signage, satellite data, and environmental context.
+2. **AI Analysis** 🤖 — GeoSeer's agentic analysis system examines visual clues — architectural styles, natural landmarks, vegetation patterns, street furniture, signage, satellite data, and environmental context.
 3. **Location Results** 📍 — Receive up to 8 location candidates ranked by confidence, each with GPS coordinates, human-readable address, and detailed reasoning explaining the analysis.
 
 ### Architecture Overview
 
-GeoSeer's multi-agent pipeline consists of:
+GeoSeer's agentic pipeline consists of two complementary analysis paths:
+
+- **Fast Mode (GS-Fast)** — Proprietary geospatial estimation for rapid kilometer-level predictions
+- **Agent Mode (GS-Agent)** — Multi-step reasoning and tool calling for more comprehensive pinpointing
+
+Shared system components include:
 
 - **Input Processing** — Image ingestion with metadata extraction (EXIF data, timestamps, camera info)
-- **Model Estimation** — Proprietary geospatial estimation model (GS-Fast) for rapid kilometer-level predictions
+- **Model Estimation** — Proprietary geospatial estimation model used by GS-Fast and as a signal source for deeper analysis
 - **LVLM Analysis** — Large Vision-Language Model analysis for feature extraction and scene understanding
 - **Normalization & Reasoning** — Multi-step reasoning that integrates signals from all sources
 - **Tool Calling** — Satellite imagery, map data, web search, and reverse image search for verification
@@ -27,7 +32,7 @@ GeoSeer's multi-agent pipeline consists of:
 
 ## Features
 
-- 🧠 **Multi-Agent AI Architecture** — Advanced multi-step reasoning with tool calling for pinpoint accuracy
+- 🧠 **Agentic AI Architecture** — Advanced multi-step reasoning with tool calling for pinpoint accuracy
 - ⚡ **Dual Processing Modes** — GS-Fast (~10s, rapid estimation) and GS-Agent (~30-60s, comprehensive analysis)
 - 🌐 **Global Coverage** — Geolocate photos from anywhere on Earth
 - 🔒 **Privacy-First** — Images are processed in real-time and immediately discarded after analysis
@@ -57,8 +62,9 @@ GeoSeer delivers **industry-leading performance** across all key metrics:
 Visit [geoseeer.com](https://geoseeer.com) — new users can get started **for free**.
 
 1. Upload or drag & drop your image
-2. Optionally add context (country, source, time period, etc.)
-3. Get precise location results with confidence scores and reasoning
+2. Choose Fast mode for quick estimation or Agent mode for deeper analysis
+3. Optionally add context (country, source, time period, etc.)
+4. Get precise location results with confidence scores and reasoning
 
 ### Via the API
 
@@ -68,6 +74,7 @@ Get your API key from the [Dashboard](https://geoseeer.com/dashboard), then:
 curl -X POST https://geoseeer.com/api/v1/analyze \
   -H "X-API-Key: YOUR_API_KEY" \
   -F "image=@photo.jpg" \
+  -F "analysis_mode=fast" \
   -F "user_context=Beach photo from summer 2025"
 ```
 
