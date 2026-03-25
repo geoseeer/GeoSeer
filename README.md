@@ -1,14 +1,14 @@
 # GeoSeer — AI-Powered Image Geolocation Platform 🌍🔍
 
-[GeoSeer](https://geoseeer.com) is a professional-grade **AI geolocation intelligence platform** that pinpoints exact locations from images with state-of-the-art accuracy. Using an advanced **agentic workflow with fast and agent modes**, GeoSeer combines rapid estimation with sophisticated multi-step reasoning and tool calling to deliver professional-grade results at a fraction of the cost and time.
+[GeoSeer](https://geoseeer.com) is a professional-grade **AI geolocation intelligence platform** for image geolocation and broader visual geolocation workflows. It pinpoints exact locations from images with state-of-the-art accuracy, and also supports image sets and short video analysis. Using an advanced **agentic workflow with fast and agent modes**, GeoSeer combines rapid estimation with sophisticated multi-step reasoning and tool calling to deliver professional-grade results at a fraction of the cost and time.
 
-> Upload any photo → Get precise GPS coordinates, address, and reasoning — in seconds.
+> Upload a photo, image set, or short video → Get precise GPS coordinates, address, and reasoning — in seconds.
 
 ---
 
 ## How It Works
 
-1. **Upload Image** 📤 — Upload an image via the [web interface](https://geoseeer.com) or the [REST API](https://geoseeer.com/api-docs). Supports file upload (JPG, PNG, WebP, HEIC) and image URLs.
+1. **Upload Media** 📤 — Upload an image via the [web interface](https://geoseeer.com) or the [REST API](https://geoseeer.com/api-docs). GeoSeer supports single-image, multi-image, video, and image URL analysis.
 2. **AI Analysis** 🤖 — GeoSeer's agentic analysis system examines visual clues — architectural styles, natural landmarks, vegetation patterns, street furniture, signage, satellite data, and environmental context.
 3. **Location Results** 📍 — Receive up to 8 location candidates ranked by confidence, each with GPS coordinates, human-readable address, and detailed reasoning explaining the analysis.
 
@@ -21,7 +21,7 @@ GeoSeer's agentic pipeline consists of two complementary analysis paths:
 
 Shared system components include:
 
-- **Input Processing** — Image ingestion with metadata extraction (EXIF data, timestamps, camera info)
+- **Input Processing** — Visual media ingestion with metadata extraction (EXIF data, timestamps, camera info)
 - **Model Estimation** — Proprietary geospatial estimation model used by GS-Fast and as a signal source for deeper analysis
 - **LVLM Analysis** — Large Vision-Language Model analysis for feature extraction and scene understanding
 - **Normalization & Reasoning** — Multi-step reasoning that integrates signals from all sources
@@ -34,8 +34,8 @@ Shared system components include:
 
 - 🧠 **Agentic AI Architecture** — Advanced multi-step reasoning with tool calling for pinpoint accuracy
 - ⚡ **Dual Processing Modes** — GS-Fast (~10s, rapid estimation) and GS-Agent (~30-60s, comprehensive analysis)
-- 🌐 **Global Coverage** — Geolocate photos from anywhere on Earth
-- 🔒 **Privacy-First** — Images are processed in real-time and immediately discarded after analysis
+- 🌐 **Global Coverage** — Geolocate photos, image sets, and video from anywhere on Earth
+- 🔒 **Privacy-First** — Uploaded media is processed in real-time and immediately discarded after analysis
 - 🔌 **Developer API** — Simple REST API with streaming (SSE) support for easy integration
 - 🏢 **Enterprise Ready** — Custom rate limits, dedicated support, and scalable infrastructure via [enterprise.geoseeer.com](https://enterprise.geoseeer.com)
 
@@ -61,7 +61,7 @@ GeoSeer delivers **industry-leading performance** across all key metrics:
 
 Visit [geoseeer.com](https://geoseeer.com) — new users can get started **for free**.
 
-1. Upload or drag & drop your image
+1. Upload or drag & drop your image or video
 2. Choose Fast mode for quick estimation or Agent mode for deeper analysis
 3. Optionally add context (country, source, time period, etc.)
 4. Get precise location results with confidence scores and reasoning

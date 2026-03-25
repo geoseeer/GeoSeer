@@ -1,6 +1,6 @@
 # GeoSeer API Documentation 🌍🔍
 
-The GeoSeer [API](https://geoseeer.com/api-docs) allows you to integrate AI-powered image geolocation into your applications. Submit any photo and receive precise location predictions with GPS coordinates, addresses, confidence scores, and detailed reasoning.
+The GeoSeer [API](https://geoseeer.com/api-docs) allows you to integrate AI-powered visual geolocation into your applications. Submit a single image, up to 3 images, a short video, or an image URL and receive precise location predictions with GPS coordinates, addresses, confidence scores, and detailed reasoning.
 
 - **Base URL**: `https://geoseeer.com/api/v1`
 - **Interactive Docs**: [geoseeer.com/api-docs](https://geoseeer.com/api-docs)
@@ -18,7 +18,7 @@ The GeoSeer [API](https://geoseeer.com/api-docs) allows you to integrate AI-powe
 - [Response Format](#response-format)
 - [Error Codes](#error-codes)
 - [Rate Limits](#rate-limits)
-- [Supported Formats](#supported-image-formats)
+- [Supported Formats](#supported-media-formats)
 - [Code Examples](#code-examples)
 - [Pricing](#pricing)
 - [Contact](#contact)
@@ -49,7 +49,7 @@ X-API-Key: YOUR_API_KEY
 
 | Method | Path | Description |
 |--------|------|-------------|
-| `POST` | `/api/v1/analyze` | Analyze an image to determine its geographic location |
+| `POST` | `/api/v1/analyze` | Analyze submitted visual media to determine its geographic location |
 
 Full URL: `https://geoseeer.com/api/v1/analyze`
 
@@ -57,23 +57,50 @@ Full URL: `https://geoseeer.com/api/v1/analyze`
 
 ## Request Format
 
-The analyze endpoint supports two input modes: **file upload** and **image URL**.
+The analyze endpoint supports **multipart file upload** and **image URL** requests.
 
 ### Option 1: File Upload (`multipart/form-data`)
 
+Use one of the following multipart patterns:
+
+- Single image: send one `image` file
+- Video: send one `image` file containing the video
+- Multiple images: send repeated `images` fields, up to 3 total
+
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `image` | File | **Yes** | Image file (JPG, PNG, WebP, HEIC). Max 10 MB. |
+| `image` | File | Conditional | Single image file or video file. Images: JPG, PNG, WebP, HEIC up to 10 MB. Video: MP4, MOV, WebM up to 100 MB. |
+| `images` | File[] | Conditional | Repeated field for multi-image analysis. Up to 3 image files total, 10 MB each. |
 | `user_context` | String | No | Optional context to improve accuracy (e.g., "European city", "taken in 2023") |
 | `stream` | Boolean | No | Set `true` for real-time SSE streaming updates. Default: `false`. |
 
-**Example:**
+**Single image example:**
 
 ```bash
 curl -X POST https://geoseeer.com/api/v1/analyze \
   -H "X-API-Key: YOUR_API_KEY" \
   -F "image=@photo.jpg" \
   -F "user_context=Beach photo from summer 2025"
+```
+
+**Multiple images example:**
+
+```bash
+curl -X POST https://geoseeer.com/api/v1/analyze \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -F "images=@front.jpg" \
+  -F "images=@side.jpg" \
+  -F "images=@detail.jpg" \
+  -F "user_context=Three images from the same location"
+```
+
+**Video example:**
+
+```bash
+curl -X POST https://geoseeer.com/api/v1/analyze \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -F "image=@street-scene.mp4" \
+  -F "user_context=Short street-level walkthrough video"
 ```
 
 ### Option 2: Image URL (`application/json`)
@@ -284,7 +311,7 @@ When `stream: true`, the final `completed` event contains:
 | `400` | Bad Request | Invalid request parameters (e.g., missing image, unsupported format) |
 | `401` | Unauthorized | Missing or invalid API key |
 | `402` | Payment Required | API credits depleted — upgrade your plan or add credits |
-| `413` | Payload Too Large | Image file exceeds the 10 MB size limit |
+| `413` | Payload Too Large | Uploaded media exceeds the 10 MB image limit or 100 MB video limit |
 | `429` | Too Many Requests | Rate limit exceeded — wait and retry |
 | `500` | Internal Server Error | Server-side error — retry or contact support |
 
@@ -312,7 +339,9 @@ When `stream: true`, the final `completed` event contains:
 
 ---
 
-## Supported Image Formats
+## Supported Media Formats
+
+### Images
 
 | Format | Supported |
 |--------|-----------|
@@ -321,13 +350,25 @@ When `stream: true`, the final `completed` event contains:
 | WebP | ✅ |
 | HEIC | ✅ |
 
-**Maximum file size:** 10 MB
+**Maximum image size:** 10 MB each
+
+### Video
+
+| Format | Supported |
+|--------|-----------|
+| MP4 | ✅ |
+| MOV | ✅ |
+| WebM | ✅ |
+
+**Maximum video size:** 100 MB
+
+**Upload rules:** 1 image, up to 3 images, or 1 video per request.
 
 ---
 
 ## Code Examples
 
-### Python — File Upload
+### Python — Single Image Upload
 
 ```python
 import requests
@@ -350,6 +391,52 @@ if result["status"] == "success":
     print(f"Coordinates: {top_location['latitude']}, {top_location['longitude']}")
     print(f"Reasoning: {top_location['reasoning']}")
 ```
+
+  ### Python — Multiple Images Upload
+
+  ```python
+  import requests
+
+  API_KEY = "YOUR_API_KEY"
+
+  files = [
+    ("images", ("front.jpg", open("front.jpg", "rb"), "image/jpeg")),
+    ("images", ("side.jpg", open("side.jpg", "rb"), "image/jpeg")),
+    ("images", ("detail.jpg", open("detail.jpg", "rb"), "image/jpeg")),
+  ]
+
+  response = requests.post(
+    "https://geoseeer.com/api/v1/analyze",
+    headers={"X-API-Key": API_KEY},
+    files=files,
+    data={"user_context": "Three images from the same location"}
+  )
+
+  result = response.json()
+  if result["status"] == "success":
+    top_location = result["locations"][0]
+    print(f"Location: {top_location['address']}")
+  ```
+
+  ### Python — Video Upload
+
+  ```python
+  import requests
+
+  API_KEY = "YOUR_API_KEY"
+
+  with open("street-scene.mp4", "rb") as f:
+    response = requests.post(
+      "https://geoseeer.com/api/v1/analyze",
+      headers={"X-API-Key": API_KEY},
+      files={"image": f},
+      data={"user_context": "Short street-level walkthrough video"}
+    )
+
+  result = response.json()
+  if result["status"] == "success":
+    print(result["locations"][0]["address"])
+  ```
 
 ### Python — Image URL
 
@@ -377,7 +464,7 @@ if result["status"] == "success":
     print(f"Confidence: {top_location['confidence']*100:.0f}%")
 ```
 
-### Node.js — File Upload
+### Node.js — Single Image Upload
 
 ```javascript
 const formData = new FormData();
@@ -396,6 +483,50 @@ if (result.status === 'success') {
   console.log('Location:', topLocation.address);
   console.log('Confidence:', topLocation.confidence);
   console.log('Coordinates:', topLocation.latitude, topLocation.longitude);
+}
+```
+
+### Node.js — Multiple Images Upload
+
+```javascript
+const formData = new FormData();
+
+for (const file of [fileInput.files[0], fileInput.files[1], fileInput.files[2]]) {
+  if (file) {
+    formData.append('images', file);
+  }
+}
+
+formData.append('user_context', 'Three images from the same location');
+
+const response = await fetch('https://geoseeer.com/api/v1/analyze', {
+  method: 'POST',
+  headers: { 'X-API-Key': 'YOUR_API_KEY' },
+  body: formData
+});
+
+const result = await response.json();
+if (result.status === 'success') {
+  console.log('Location:', result.locations[0].address);
+}
+```
+
+### Node.js — Video Upload
+
+```javascript
+const formData = new FormData();
+formData.append('image', videoInput.files[0]);
+formData.append('user_context', 'Short street-level walkthrough video');
+
+const response = await fetch('https://geoseeer.com/api/v1/analyze', {
+  method: 'POST',
+  headers: { 'X-API-Key': 'YOUR_API_KEY' },
+  body: formData
+});
+
+const result = await response.json();
+if (result.status === 'success') {
+  console.log('Location:', result.locations[0].address);
 }
 ```
 
@@ -422,13 +553,33 @@ if (result.status === 'success') {
 }
 ```
 
-### cURL — File Upload
+### cURL — Single Image Upload
 
 ```bash
 curl -X POST https://geoseeer.com/api/v1/analyze \
   -H "X-API-Key: YOUR_API_KEY" \
   -F "image=@photo.jpg" \
   -F "user_context=Beach photo from summer 2025"
+```
+
+### cURL — Multiple Images Upload
+
+```bash
+curl -X POST https://geoseeer.com/api/v1/analyze \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -F "images=@front.jpg" \
+  -F "images=@side.jpg" \
+  -F "images=@detail.jpg" \
+  -F "user_context=Three images from the same location"
+```
+
+### cURL — Video Upload
+
+```bash
+curl -X POST https://geoseeer.com/api/v1/analyze \
+  -H "X-API-Key: YOUR_API_KEY" \
+  -F "image=@street-scene.mp4" \
+  -F "user_context=Short street-level walkthrough video"
 ```
 
 ### cURL — Image URL
