@@ -69,8 +69,8 @@ Use one of the following multipart patterns:
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `image` | File | Conditional | Single image file or video file. Images: JPG, PNG, WebP, HEIC up to 10 MB. Video: MP4, MOV, WebM up to 100 MB. |
-| `images` | File[] | Conditional | Repeated field for multi-image analysis. Up to 3 image files total, 10 MB each. |
+| `image` | File | Conditional | Single image file or video file. Supported formats: JPG, PNG, WebP, HEIC, MP4, MOV, WebM. Total upload size per analysis: up to 10 MB. |
+| `images` | File[] | Conditional | Repeated field for multi-image analysis. Up to 3 image files total, with a combined upload size of up to 10 MB per analysis. |
 | `user_context` | String | No | Optional context to improve accuracy (e.g., "European city", "taken in 2023") |
 | `stream` | Boolean | No | Set `true` for real-time SSE streaming updates. Default: `false`. |
 
@@ -311,7 +311,7 @@ When `stream: true`, the final `completed` event contains:
 | `400` | Bad Request | Invalid request parameters (e.g., missing image, unsupported format) |
 | `401` | Unauthorized | Missing or invalid API key |
 | `402` | Payment Required | API credits depleted — upgrade your plan or add credits |
-| `413` | Payload Too Large | Uploaded media exceeds the 10 MB image limit or 100 MB video limit |
+| `413` | Payload Too Large | Uploaded media exceeds the 10 MB total upload limit |
 | `429` | Too Many Requests | Rate limit exceeded — wait and retry |
 | `500` | Internal Server Error | Server-side error — retry or contact support |
 
@@ -350,7 +350,7 @@ When `stream: true`, the final `completed` event contains:
 | WebP | ✅ |
 | HEIC | ✅ |
 
-**Maximum image size:** 10 MB each
+**Maximum upload size:** 10 MB total per request
 
 ### Video
 
@@ -359,8 +359,6 @@ When `stream: true`, the final `completed` event contains:
 | MP4 | ✅ |
 | MOV | ✅ |
 | WebM | ✅ |
-
-**Maximum video size:** 100 MB
 
 **Upload rules:** 1 image, up to 3 images, or 1 video per request.
 
