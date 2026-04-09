@@ -1,304 +1,348 @@
-# GeoSeer API Documentation 🌍🔍
+# GeoSeer API Documentation
 
-The GeoSeer [API](https://geoseeer.com/api-docs) allows you to integrate AI-powered visual geolocation into your applications. Submit a single image, up to 3 images, a short video, or an image URL and receive precise location predictions with GPS coordinates, addresses, confidence scores, and detailed reasoning.
+This document mirrors the current API contract shown on the GeoSeer API Docs page.
 
-- **Base URL**: `https://geoseeer.com/api/v1`
-- **Interactive Docs**: [geoseeer.com/api-docs](https://geoseeer.com/api-docs)
-
----
-
-## Table of Contents
-
-- [Authentication](#authentication)
-- [Endpoint](#endpoint)
-- [Request Format](#request-format)
-  - [File Upload](#option-1-file-upload-multipartform-data)
-  - [Image URL](#option-2-image-url-applicationjson)
-- [Streaming](#streaming-server-sent-events)
-- [Response Format](#response-format)
-- [Error Codes](#error-codes)
-- [Rate Limits](#rate-limits)
-- [Supported Formats](#supported-media-formats)
-- [Code Examples](#code-examples)
-- [Pricing](#pricing)
-- [Contact](#contact)
+- Base URL: `https://geoseeer.com/api/v1`
+- Interactive docs: `https://geoseeer.com/api-docs`
 
 ---
 
 ## Authentication
 
-All API requests require an API key passed via the `X-API-Key` header.
+All requests require the `X-API-Key` header.
 
-**Getting your API key:**
-
-1. Create an account at [geoseeer.com](https://geoseeer.com)
-2. Go to the [Dashboard](https://geoseeer.com/dashboard)
-3. Copy your API key
-
-**Header format:**
-
-```
+```http
 X-API-Key: YOUR_API_KEY
 ```
 
-> ⚠️ Keep your API key secret. Do not expose it in client-side code or public repositories.
+Get your API key from the dashboard:
+
+- `https://geoseeer.com/dashboard`
 
 ---
 
 ## Endpoint
 
 | Method | Path | Description |
-|--------|------|-------------|
-| `POST` | `/api/v1/analyze` | Analyze submitted visual media to determine its geographic location |
+| --- | --- | --- |
+| `POST` | `/analyze` | Analyze media or URL input. |
 
-Full URL: `https://geoseeer.com/api/v1/analyze`
+Full URL:
 
----
-
-## Request Format
-
-The analyze endpoint supports **multipart file upload** and **image URL** requests.
-
-### Option 1: File Upload (`multipart/form-data`)
-
-Use one of the following multipart patterns:
-
-- Single image: send one `image` file
-- Video: send one `image` file containing the video
-- Multiple images: send repeated `images` fields, up to 3 total
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `image` | File | Conditional | Single image file or video file. Supported formats: JPG, PNG, WebP, HEIC, MP4, MOV, WebM. Total upload size per analysis: up to 10 MB. |
-| `images` | File[] | Conditional | Repeated field for multi-image analysis. Up to 3 image files total, with a combined upload size of up to 10 MB per analysis. |
-| `user_context` | String | No | Optional context to improve accuracy (e.g., "European city", "taken in 2023") |
-| `stream` | Boolean | No | Set `true` for real-time SSE streaming updates. Default: `false`. |
-
-**Single image example:**
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -F "image=@photo.jpg" \
-  -F "user_context=Beach photo from summer 2025"
-```
-
-**Multiple images example:**
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -F "images=@front.jpg" \
-  -F "images=@side.jpg" \
-  -F "images=@detail.jpg" \
-  -F "user_context=Three images from the same location"
-```
-
-**Video example:**
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -F "image=@street-scene.mp4" \
-  -F "user_context=Short street-level walkthrough video"
-```
-
-### Option 2: Image URL (`application/json`)
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `image_url` | String | **Yes** | Publicly accessible URL of the image |
-| `user_context` | String | No | Optional context to improve accuracy |
-| `stream` | Boolean | No | Set `true` for real-time SSE streaming updates. Default: `false`. |
-
-**Example:**
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "image_url": "https://example.com/photo.jpg",
-    "user_context": "European city center"
-  }'
-```
+`https://geoseeer.com/api/v1/analyze`
 
 ---
 
-## Streaming (Server-Sent Events)
+## Request Parameters
 
-Set `stream: true` in your request to receive real-time progress updates via **Server-Sent Events (SSE)**. This is useful for showing live analysis progress in your application.
+### Required
 
-### Event Types
+- `X-API-Key` (header): API key.
+- Input selector (body): provide exactly one of `file`, `files`, `file_url`, or `file_urls`.
 
-| Event | Description |
-|-------|-------------|
-| `processing` | Progress updates during analysis (includes `message`, `branch_id`, `timestamp`) |
-| `branch_point` | Engine is searching multiple geographic regions in parallel |
-| `branch_update` | Status change for an individual search branch |
-| `completed` | Final result with location candidates array |
-| `error` | An error occurred during processing |
+### Optional
 
-### SSE Event Format
+- `analysis_mode`: `fast` or `agent` (default: `fast`).
+- `stream`: boolean (default: `false`). Set `true` for SSE updates.
+- `user_context`: string with extra hints.
 
+### Input Shapes
+
+- `file`: single image or video upload.
+- `files`: multiple image uploads only (up to 3 items).
+- `file_url`: single image or video URL.
+- `file_urls`: multiple image URLs only (up to 3 URLs).
+
+---
+
+## Supported Formats And Limits
+
+### Images
+
+- JPG
+- PNG
+- WebP
+- HEIC
+
+### Video
+
+- MP4
+- MOV
+- WebM
+
+### Limits
+
+- Max media items per request: `3`
+- Max upload size: `10MB`
+
+---
+
+## Quick Start Examples
+
+### File Upload: Single File (Image Or Video)
+
+```bash
+curl -X POST https://geoseeer.com/api/v1/analyze \
+	-H "X-API-Key: YOUR_API_KEY" \
+	-F "file=@/path/to/media.jpg" \
+	-F "analysis_mode=fast"
 ```
-event: processing
-data: {"type":"progress","message":"Analyzing visual features","branch_id":"main_llm_primary","timestamp":1737312000.123}
-
-event: completed
-data: {"type":"complete","result":{"status":"success","candidates":[{"rank":1,"coordinates":{"latitude":48.8584,"longitude":2.2945},"address":"Eiffel Tower, Paris","confidence":0.95,"branch_id":"main_llm_primary"}],"processing_time":45.2}}
-```
-
-### Python Streaming Example
 
 ```python
 import requests
-import sseclient  # pip install sseclient-py
-import json
 
 API_KEY = "YOUR_API_KEY"
 
-def analyze_with_streaming(image_url):
-    response = requests.post(
-        "https://geoseeer.com/api/v1/analyze",
-        headers={
-            "X-API-Key": API_KEY,
-            "Content-Type": "application/json"
-        },
-        json={"image_url": image_url, "stream": True},
-        stream=True
-    )
+with open("media.jpg", "rb") as media_file:
+		response = requests.post(
+				"https://geoseeer.com/api/v1/analyze",
+				headers={"X-API-Key": API_KEY},
+				files={"file": media_file},
+				data={"analysis_mode": "fast"}
+		)
 
-    client = sseclient.SSEClient(response)
-    for event in client.events():
-        data = json.loads(event.data)
-
-        if event.event == "processing":
-            print(f"[{data.get('branch_id', '')}] {data.get('message', '')}")
-        elif event.event == "completed":
-            result = data.get("result", {})
-            if result.get("status") == "success":
-                for loc in result.get("candidates", []):
-                    coords = loc.get("coordinates", {})
-                    print(f"{loc['address']} ({coords.get('latitude')}, {coords.get('longitude')})")
-            return result
-        elif event.event == "error":
-            print(f"Error: {data.get('error')}")
+result = response.json()
+print(result["locations"][0]["address"])
 ```
 
-### JavaScript Streaming Example
-
 ```javascript
-async function analyzeWithStreaming(imageUrl) {
-  const response = await fetch('https://geoseeer.com/api/v1/analyze', {
-    method: 'POST',
-    headers: {
-      'X-API-Key': 'YOUR_API_KEY',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ image_url: imageUrl, stream: true })
-  });
+const selectedFile = fileInput.files[0];
+const formData = new FormData();
+formData.append('file', selectedFile);
+formData.append('analysis_mode', 'fast');
 
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
+const response = await fetch('https://geoseeer.com/api/v1/analyze', {
+	method: 'POST',
+	headers: { 'X-API-Key': 'YOUR_API_KEY' },
+	body: formData
+});
 
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
+const result = await response.json();
+console.log(result.locations[0].address);
+```
 
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop();
+### File Upload: Multiple Images
 
-    let eventType = 'message';
-    for (const line of lines) {
-      if (line.startsWith('event: ')) {
-        eventType = line.slice(7);
-      } else if (line.startsWith('data: ')) {
-        const data = JSON.parse(line.slice(6));
+```bash
+curl -X POST https://geoseeer.com/api/v1/analyze \
+	-H "X-API-Key: YOUR_API_KEY" \
+	-F "files=@front.jpg" \
+	-F "files=@side.jpg" \
+	-F "files=@detail.jpg" \
+	-F "analysis_mode=fast"
+```
 
-        if (eventType === 'processing') {
-          console.log(`[${data.branch_id || ''}] ${data.message || ''}`);
-        } else if (eventType === 'completed') {
-          const { candidates } = data.result || {};
-          candidates?.forEach(loc => {
-            console.log(`${loc.address} (${loc.coordinates?.latitude}, ${loc.coordinates?.longitude})`);
-          });
-          return data.result;
-        } else if (eventType === 'error') {
-          throw new Error(data.error);
-        }
-      }
-    }
-  }
-}
+### URL Input: Single URL (Image Or Video)
+
+```bash
+curl -X POST https://geoseeer.com/api/v1/analyze \
+	-H "X-API-Key: YOUR_API_KEY" \
+	-H "Content-Type: application/json" \
+	-d '{
+		"file_url": "https://example.com/photo.jpg",
+		"analysis_mode": "fast"
+	}'
+```
+
+### URL Input: Multiple Image URLs
+
+```bash
+curl -X POST https://geoseeer.com/api/v1/analyze \
+	-H "X-API-Key: YOUR_API_KEY" \
+	-H "Content-Type: application/json" \
+	-d '{
+		"file_urls": [
+			"https://example.com/front.jpg",
+			"https://example.com/side.jpg",
+			"https://example.com/detail.jpg"
+		],
+		"analysis_mode": "fast"
+	}'
 ```
 
 ---
 
 ## Response Format
 
-### Standard (Non-Streaming) Response
-
-Returns up to **8 location candidates**, ordered by confidence score (highest first).
+Canonical success responses include `locations` and `API_Requests_remaining`.
 
 ```json
 {
-  "status": "success",
-  "locations": [
-    {
-      "latitude": 48.8584,
-      "longitude": 2.2945,
-      "confidence": 0.95,
-      "address": "Eiffel Tower, Paris, France",
-      "reasoning": "The image shows the Eiffel Tower from Trocadéro gardens..."
-    },
-    {
-      "latitude": 48.8530,
-      "longitude": 2.3499,
-      "confidence": 0.72,
-      "address": "Notre-Dame, Paris, France",
-      "reasoning": "Gothic cathedral architecture matches Notre-Dame..."
-    }
-  ],
-  "processing_time": "45.2s"
+	"status": "success",
+	"locations": [
+		{
+			"latitude": 48.8584,
+			"longitude": 2.2945,
+			"confidence": 0.95,
+			"address": "Eiffel Tower, Paris, France",
+			"reasoning": "The image shows the Eiffel Tower from Trocadero gardens..."
+		},
+		{
+			"latitude": 48.853,
+			"longitude": 2.3499,
+			"confidence": 0.72,
+			"address": "Notre-Dame, Paris, France",
+			"reasoning": "Gothic cathedral architecture and urban layout align with Notre-Dame..."
+		}
+	],
+	"processing_time": "45.2s",
+	"API_Requests_remaining": 67
 }
 ```
 
-### Location Object Fields
+### Contract Guarantees
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `latitude` | Float | Latitude of the predicted location |
-| `longitude` | Float | Longitude of the predicted location |
-| `confidence` | Float | Confidence score between 0 and 1 (higher = more confident) |
-| `address` | String | Human-readable address of the predicted location |
-| `reasoning` | String | Detailed explanation of why this location was predicted |
+- `locations` is the canonical success result field.
+- `API_Requests_remaining` is present in success responses.
+- `API_Requests_remaining` is a number.
+- `processing_time` is a string with an `s` suffix.
+- `status` is `"success"` for successful responses.
 
-### Streaming Response
+---
 
-When `stream: true`, the final `completed` event contains:
+## Streaming (SSE)
 
-```json
-{
-  "type": "complete",
-  "result": {
-    "status": "success",
-    "candidates": [
-      {
-        "rank": 1,
-        "coordinates": {
-          "latitude": 48.8584,
-          "longitude": 2.2945
-        },
-        "address": "Eiffel Tower, Paris",
-        "confidence": 0.95,
-        "branch_id": "main_llm_primary"
-      }
-    ],
-    "processing_time": 45.2
-  }
+Set `stream: true` to receive Server-Sent Events.
+
+### Event Types
+
+- `processing`: progress updates.
+- `branch_point`: parallel branch creation (mostly agent mode; usually absent in fast mode).
+- `branch_update`: branch status update (mostly agent mode; usually absent in fast mode).
+- `completed`: final result with `locations` and `API_Requests_remaining`.
+- `error`: processing error.
+- `cancelled`: analysis cancelled.
+
+### SSE Example
+
+```text
+: keepalive
+
+id: 101
+event: processing
+data: {"type":"progress","message":"Running fast analysis","branch_id":"Satellite Agent","last_event_id":"101"}
+
+id: 102
+event: branch_point
+data: {"type":"branch_point","branch_point":{"fork_id":"candidate_search_methods","fork_label":"Candidate Search Methods","branches":[{"branch_id":"Search Agent","label":"Web Search","status":"processing"},{"branch_id":"Satellite Agent","label":"Satellite","status":"processing"}]},"last_event_id":"102"}
+
+id: 103
+event: branch_update
+data: {"type":"branch_update","branch_id":"Search Agent","status":"completed","message":"Found 2 candidates","last_event_id":"103"}
+
+id: 104
+event: completed
+data: {"type":"complete","result":{"status":"success","locations":[{"latitude":25.7735,"longitude":-80.2859,"address":"Miami, United States","confidence":0.6,"reasoning":"Visual clues suggest a likely match in this region."}],"processing_time":"24.9s","API_Requests_remaining":67},"last_event_id":"104"}
+
+id: 105
+event: cancelled
+data: {"type":"cancelled","message":"Analysis cancelled","last_event_id":"105"}
+```
+
+### Python Streaming Example
+
+```python
+import json
+import requests
+
+API_KEY = "YOUR_API_KEY"
+
+def analyze_with_streaming(file_url):
+		response = requests.post(
+				"https://geoseeer.com/api/v1/analyze",
+				headers={
+						"X-API-Key": API_KEY,
+						"Content-Type": "application/json"
+				},
+				json={"file_url": file_url, "analysis_mode": "fast", "stream": True},
+				stream=True
+		)
+
+		event_type = None
+		for raw_line in response.iter_lines(decode_unicode=True):
+				if not raw_line:
+						continue
+				if raw_line.startswith("event: "):
+						event_type = raw_line[7:]
+						continue
+				if not raw_line.startswith("data: "):
+						continue
+
+				payload = json.loads(raw_line[6:])
+				if event_type == "processing":
+						print(payload.get("message", "Processing"))
+				elif event_type == "completed":
+						result = payload.get("result", {})
+						print(result["locations"][0]["address"])
+						print("Remaining:", result.get("API_Requests_remaining"))
+						return result
+				elif event_type == "cancelled":
+						print(payload.get("message", "Analysis cancelled"))
+						return None
+				elif event_type == "error":
+						raise RuntimeError(payload.get("error", "Streaming error"))
+```
+
+### JavaScript Streaming Example
+
+```javascript
+async function analyzeWithStreaming(fileUrl) {
+	const response = await fetch('https://geoseeer.com/api/v1/analyze', {
+		method: 'POST',
+		headers: {
+			'X-API-Key': 'YOUR_API_KEY',
+			'Content-Type': 'application/json'
+		},
+		body: JSON.stringify({
+			file_url: fileUrl,
+			analysis_mode: 'fast',
+			stream: true
+		})
+	});
+
+	const reader = response.body.getReader();
+	const decoder = new TextDecoder();
+	let buffer = '';
+	let eventType = '';
+
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+
+		buffer += decoder.decode(value, { stream: true });
+		const chunks = buffer.split('\n\n');
+		buffer = chunks.pop() || '';
+
+		for (const chunk of chunks) {
+			const lines = chunk.split('\n');
+			let dataPayload = null;
+
+			for (const line of lines) {
+				if (line.startsWith('event: ')) {
+					eventType = line.slice(7);
+				}
+				if (line.startsWith('data: ')) {
+					dataPayload = JSON.parse(line.slice(6));
+				}
+			}
+
+			if (!dataPayload) continue;
+
+			if (eventType === 'processing') {
+				console.log(dataPayload.message || 'Processing');
+			} else if (eventType === 'completed') {
+				const result = dataPayload.result || {};
+				console.log(result.locations?.[0]?.address);
+				console.log('Remaining:', result.API_Requests_remaining);
+				return result;
+			} else if (eventType === 'cancelled') {
+				console.log(dataPayload.message || 'Analysis cancelled');
+				return null;
+			} else if (eventType === 'error') {
+				throw new Error(dataPayload.error || 'Streaming error');
+			}
+		}
+	}
 }
 ```
 
@@ -306,337 +350,19 @@ When `stream: true`, the final `completed` event contains:
 
 ## Error Codes
 
-| HTTP Code | Meaning | Description |
-|-----------|---------|-------------|
-| `400` | Bad Request | Invalid request parameters (e.g., missing image, unsupported format) |
-| `401` | Unauthorized | Missing or invalid API key |
-| `402` | Payment Required | API credits depleted — upgrade your plan or add credits |
-| `413` | Payload Too Large | Uploaded media exceeds the 10 MB total upload limit |
-| `429` | Too Many Requests | Rate limit exceeded — wait and retry |
-| `500` | Internal Server Error | Server-side error — retry or contact support |
-
-### Error Response Format
-
-```json
-{
-  "status": "error",
-  "error": "Description of what went wrong"
-}
-```
-
----
-
-## Rate Limits
-
-| Plan | Rate Limit | Monthly Quota |
-|------|-----------|---------------|
-| **Free** | 1 request/second | 10 total API calls |
-| **Starter** | 1 request/second | 100 API calls/month |
-| **Pro** | 1 request/second | 1,000 API calls/month |
-| **Enterprise** | Custom | Custom — [enterprise.geoseeer.com](https://enterprise.geoseeer.com) |
-
-> Starter and Pro plans support automatic overage billing at **$0.20 per additional call** beyond the monthly limit.
-
----
-
-## Supported Media Formats
-
-### Images
-
-| Format | Supported |
-|--------|-----------|
-| JPEG / JPG | ✅ |
-| PNG | ✅ |
-| WebP | ✅ |
-| HEIC | ✅ |
-
-**Maximum upload size:** 10 MB total per request
-
-### Video
-
-| Format | Supported |
-|--------|-----------|
-| MP4 | ✅ |
-| MOV | ✅ |
-| WebM | ✅ |
-
-**Upload rules:** 1 image, up to 3 images, or 1 video per request.
-
----
-
-## Code Examples
-
-### Python — Single Image Upload
-
-```python
-import requests
-
-API_KEY = "YOUR_API_KEY"
-
-with open("photo.jpg", "rb") as f:
-    response = requests.post(
-        "https://geoseeer.com/api/v1/analyze",
-        headers={"X-API-Key": API_KEY},
-        files={"image": f},
-        data={"user_context": "Beach vacation"}
-    )
-
-result = response.json()
-if result["status"] == "success":
-    top_location = result["locations"][0]
-    print(f"Location: {top_location['address']}")
-    print(f"Confidence: {top_location['confidence']*100:.0f}%")
-    print(f"Coordinates: {top_location['latitude']}, {top_location['longitude']}")
-    print(f"Reasoning: {top_location['reasoning']}")
-```
-
-  ### Python — Multiple Images Upload
-
-  ```python
-  import requests
-
-  API_KEY = "YOUR_API_KEY"
-
-  files = [
-    ("images", ("front.jpg", open("front.jpg", "rb"), "image/jpeg")),
-    ("images", ("side.jpg", open("side.jpg", "rb"), "image/jpeg")),
-    ("images", ("detail.jpg", open("detail.jpg", "rb"), "image/jpeg")),
-  ]
-
-  response = requests.post(
-    "https://geoseeer.com/api/v1/analyze",
-    headers={"X-API-Key": API_KEY},
-    files=files,
-    data={"user_context": "Three images from the same location"}
-  )
-
-  result = response.json()
-  if result["status"] == "success":
-    top_location = result["locations"][0]
-    print(f"Location: {top_location['address']}")
-  ```
-
-  ### Python — Video Upload
-
-  ```python
-  import requests
-
-  API_KEY = "YOUR_API_KEY"
-
-  with open("street-scene.mp4", "rb") as f:
-    response = requests.post(
-      "https://geoseeer.com/api/v1/analyze",
-      headers={"X-API-Key": API_KEY},
-      files={"image": f},
-      data={"user_context": "Short street-level walkthrough video"}
-    )
-
-  result = response.json()
-  if result["status"] == "success":
-    print(result["locations"][0]["address"])
-  ```
-
-### Python — Image URL
-
-```python
-import requests
-
-API_KEY = "YOUR_API_KEY"
-
-response = requests.post(
-    "https://geoseeer.com/api/v1/analyze",
-    headers={
-        "X-API-Key": API_KEY,
-        "Content-Type": "application/json"
-    },
-    json={
-        "image_url": "https://example.com/photo.jpg",
-        "user_context": "European city center"
-    }
-)
-
-result = response.json()
-if result["status"] == "success":
-    top_location = result["locations"][0]
-    print(f"Location: {top_location['address']}")
-    print(f"Confidence: {top_location['confidence']*100:.0f}%")
-```
-
-### Node.js — Single Image Upload
-
-```javascript
-const formData = new FormData();
-formData.append('image', fileInput.files[0]);
-formData.append('user_context', 'Beach vacation');
-
-const response = await fetch('https://geoseeer.com/api/v1/analyze', {
-  method: 'POST',
-  headers: { 'X-API-Key': 'YOUR_API_KEY' },
-  body: formData
-});
-
-const result = await response.json();
-if (result.status === 'success') {
-  const topLocation = result.locations[0];
-  console.log('Location:', topLocation.address);
-  console.log('Confidence:', topLocation.confidence);
-  console.log('Coordinates:', topLocation.latitude, topLocation.longitude);
-}
-```
-
-### Node.js — Multiple Images Upload
-
-```javascript
-const formData = new FormData();
-
-for (const file of [fileInput.files[0], fileInput.files[1], fileInput.files[2]]) {
-  if (file) {
-    formData.append('images', file);
-  }
-}
-
-formData.append('user_context', 'Three images from the same location');
-
-const response = await fetch('https://geoseeer.com/api/v1/analyze', {
-  method: 'POST',
-  headers: { 'X-API-Key': 'YOUR_API_KEY' },
-  body: formData
-});
-
-const result = await response.json();
-if (result.status === 'success') {
-  console.log('Location:', result.locations[0].address);
-}
-```
-
-### Node.js — Video Upload
-
-```javascript
-const formData = new FormData();
-formData.append('image', videoInput.files[0]);
-formData.append('user_context', 'Short street-level walkthrough video');
-
-const response = await fetch('https://geoseeer.com/api/v1/analyze', {
-  method: 'POST',
-  headers: { 'X-API-Key': 'YOUR_API_KEY' },
-  body: formData
-});
-
-const result = await response.json();
-if (result.status === 'success') {
-  console.log('Location:', result.locations[0].address);
-}
-```
-
-### Node.js — Image URL
-
-```javascript
-const response = await fetch('https://geoseeer.com/api/v1/analyze', {
-  method: 'POST',
-  headers: {
-    'X-API-Key': 'YOUR_API_KEY',
-    'Content-Type': 'application/json'
-  },
-  body: JSON.stringify({
-    image_url: 'https://example.com/photo.jpg',
-    user_context: 'European city center'
-  })
-});
-
-const result = await response.json();
-if (result.status === 'success') {
-  const topLocation = result.locations[0];
-  console.log('Location:', topLocation.address);
-  console.log('Confidence:', topLocation.confidence);
-}
-```
-
-### cURL — Single Image Upload
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -F "image=@photo.jpg" \
-  -F "user_context=Beach photo from summer 2025"
-```
-
-### cURL — Multiple Images Upload
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -F "images=@front.jpg" \
-  -F "images=@side.jpg" \
-  -F "images=@detail.jpg" \
-  -F "user_context=Three images from the same location"
-```
-
-### cURL — Video Upload
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -F "image=@street-scene.mp4" \
-  -F "user_context=Short street-level walkthrough video"
-```
-
-### cURL — Image URL
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-  -H "X-API-Key: YOUR_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "image_url": "https://example.com/photo.jpg",
-    "user_context": "European city center"
-  }'
-```
-
----
-
-## Best Practices
-
-1. **Provide context** — Adding `user_context` (country, region, time period, source) significantly improves accuracy.
-2. **Use streaming for UIs** — Set `stream: true` when building user-facing applications to show real-time progress.
-3. **Handle all error codes** — Implement proper error handling, especially for `429` (rate limit) with exponential backoff.
-4. **Optimize image size** — While up to 10 MB is supported, typical photos (1–3 MB) process faster without sacrificing accuracy.
-5. **Respect rate limits** — Stay within 1 request/second to avoid `429` errors. For higher throughput, contact us about [Enterprise plans](https://enterprise.geoseeer.com).
-6. **Secure your API key** — Never expose your key in client-side code. Use server-side proxies for browser-based applications.
-7. **Check confidence scores** — Use the `confidence` field to filter or weight results programmatically.
-
----
-
-## Pricing
-
-| Plan | Monthly Price | API Calls | Overage |
-|------|--------------|-----------|---------|
-| Free | $0 | 10 total | — |
-| Starter | $19/mo ($9/mo annual) | 100/month | $0.20/call |
-| Pro | $69/mo ($29/mo annual) | 1,000/month | $0.20/call |
-| Enterprise | Custom | Custom | Custom |
-
-View full pricing at [geoseeer.com](https://geoseeer.com/#pricing).
+| HTTP Code | Label |
+| --- | --- |
+| `400` | Invalid request |
+| `401` | Unauthorized |
+| `402` | Usage limit reached |
+| `413` | File too large |
+| `429` | Queue full |
+| `500` | Server error |
 
 ---
 
 ## Links
 
-- 🌐 **Website**: [geoseeer.com](https://geoseeer.com)
-- 📖 **Interactive API Docs**: [geoseeer.com/api-docs](https://geoseeer.com/api-docs)
-- 🔑 **Dashboard & API Keys**: [geoseeer.com/dashboard](https://geoseeer.com/dashboard)
-- 🏢 **Enterprise**: [enterprise.geoseeer.com](https://enterprise.geoseeer.com)
-- 📘 **Product Introduction**: [Introduction.md](Introduction.md)
-
----
-
-## Contact
-
-For API support, enterprise partnerships, or feature requests, reach out through:
-
-- 🌐 [geoseeer.com/about](https://geoseeer.com/about)
-- 𝕏 [x.com/GeoSeeer](https://x.com/GeoSeeer)
-- 💼 [LinkedIn](https://www.linkedin.com/company/geoseer)
-
----
-
-© 2025-2026 GeoSeer. All rights reserved.
+- Website: `https://geoseeer.com`
+- API docs page: `https://geoseeer.com/api-docs`
+- Dashboard: `https://geoseeer.com/dashboard`
