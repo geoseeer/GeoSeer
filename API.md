@@ -38,7 +38,7 @@ Full URL:
 ### Required
 
 - `X-API-Key` (header): API key.
-- Input selector (body): provide exactly one of `file`, `files`, `file_url`, or `file_urls`.
+- Input selector (body): provide exactly one of `file`, `files`, `url`, or `urls`.
 
 ### Optional
 
@@ -50,8 +50,8 @@ Full URL:
 
 - `file`: single image or video upload.
 - `files`: multiple image uploads only (up to 3 items).
-- `file_url`: single image or video URL.
-- `file_urls`: multiple image URLs only (up to 3 URLs).
+- `url`: single image or video URL.
+- `urls`: multiple image URLs only (up to 3 URLs).
 
 ---
 
@@ -139,7 +139,7 @@ curl -X POST https://geoseeer.com/api/v1/analyze \
 	-H "X-API-Key: YOUR_API_KEY" \
 	-H "Content-Type: application/json" \
 	-d '{
-		"file_url": "https://example.com/photo.jpg",
+		"url": "https://example.com/photo.jpg",
 		"analysis_mode": "fast"
 	}'
 ```
@@ -151,7 +151,7 @@ curl -X POST https://geoseeer.com/api/v1/analyze \
 	-H "X-API-Key: YOUR_API_KEY" \
 	-H "Content-Type: application/json" \
 	-d '{
-		"file_urls": [
+		"urls": [
 			"https://example.com/front.jpg",
 			"https://example.com/side.jpg",
 			"https://example.com/detail.jpg"
@@ -247,14 +247,14 @@ import requests
 
 API_KEY = "YOUR_API_KEY"
 
-def analyze_with_streaming(file_url):
+def analyze_with_streaming(url):
 		response = requests.post(
 				"https://geoseeer.com/api/v1/analyze",
 				headers={
 						"X-API-Key": API_KEY,
 						"Content-Type": "application/json"
 				},
-				json={"file_url": file_url, "analysis_mode": "fast", "stream": True},
+				json={"url": url, "analysis_mode": "fast", "stream": True},
 				stream=True
 		)
 
@@ -294,7 +294,7 @@ async function analyzeWithStreaming(fileUrl) {
 			'Content-Type': 'application/json'
 		},
 		body: JSON.stringify({
-			file_url: fileUrl,
+			url: fileUrl,
 			analysis_mode: 'fast',
 			stream: true
 		})
