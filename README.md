@@ -1,23 +1,24 @@
 # GeoSeer — AI-Powered Image Geolocation Platform 🌍🔍
 
-[GeoSeer](https://geoseeer.com) is a professional-grade **AI geolocation intelligence platform** for image geolocation and broader visual geolocation workflows. It pinpoints exact locations from images with state-of-the-art accuracy, and also supports image sets and short video analysis. Using an advanced **agentic workflow with fast and agent modes**, GeoSeer combines rapid estimation with sophisticated multi-step reasoning and tool calling to deliver professional-grade results at a fraction of the cost and time.
+[GeoSeer](https://geoseeer.com) is a professional-grade **AI geolocation intelligence platform** for image geolocation, broader visual geolocation workflows, and real-world event analysis. It pinpoints exact locations from images with state-of-the-art accuracy, and also supports image sets, short video analysis, and text-only event searches. Using an advanced **agentic workflow with fast, agent, and event modes**, GeoSeer combines rapid estimation with sophisticated multi-step reasoning and tool calling to deliver professional-grade results at a fraction of the cost and time.
 
-> Upload a photo, image set, or short video → Get precise GPS coordinates, address, and reasoning — in seconds.
+> Upload a photo, image set, or short video, or enter an event description → Get precise GPS coordinates, address, and reasoning.
 
 ---
 
 ## How It Works
 
-1. **Upload Media** 📤 — Upload an image via the [web interface](https://geoseeer.com) or the [REST API](https://geoseeer.com/api-docs). GeoSeer supports single-image, multi-image, video, and image URL analysis.
-2. **AI Analysis** 🤖 — GeoSeer's agentic analysis system examines visual clues — architectural styles, natural landmarks, vegetation patterns, street furniture, signage, satellite data, and environmental context.
+1. **Submit Input** 📤 — Upload an image via the [web interface](https://geoseeer.com) or the [REST API](https://geoseeer.com/api-docs). GeoSeer supports single-image, multi-image, video, image URL, and text-based event analysis on the web.
+2. **AI Analysis** 🤖 — GeoSeer's agentic analysis system examines visual clues — architectural styles, natural landmarks, vegetation patterns, street furniture, signage, satellite data, environmental context, and event-specific context when using Event mode.
 3. **Location Results** 📍 — Receive up to 8 location candidates ranked by confidence, each with GPS coordinates, human-readable address, and detailed reasoning explaining the analysis.
 
 ### Architecture Overview
 
-GeoSeer's agentic pipeline consists of two complementary analysis paths:
+GeoSeer's agentic pipeline consists of three complementary analysis paths:
 
 - **Fast Mode (GS-Fast)** — Proprietary geospatial estimation for rapid kilometer-level predictions
 - **Agent Mode (GS-Agent)** — Multi-step reasoning and tool calling for more comprehensive pinpointing
+- **Event Mode (GS-Event)** — Text-first event investigation for real-world incident and event-location searches
 
 Shared system components include:
 
@@ -33,8 +34,9 @@ Shared system components include:
 ## Features
 
 - 🧠 **Agentic AI Architecture** — Advanced multi-step reasoning with tool calling for pinpoint accuracy
-- ⚡ **Dual Processing Modes** — GS-Fast (~10s, rapid estimation) and GS-Agent (~30-60s, comprehensive analysis)
+- ⚡ **Three Processing Modes** — GS-Fast (~10s, rapid estimation), GS-Agent (~30-60s, comprehensive analysis), and GS-Event (~50-150s depending on search complexity)
 - 🌐 **Global Coverage** — Geolocate photos, image sets, and video from anywhere on Earth
+- 📝 **Event Search Support** — Run text-only event geolocation searches without requiring file upload
 - 🔒 **Privacy-First** — Uploaded media is processed in real-time and immediately discarded after analysis
 - 🔌 **Developer API** — Simple REST API with streaming (SSE) support for easy integration
 - 🏢 **Enterprise Ready** — Custom rate limits, dedicated support, and scalable infrastructure via [enterprise.geoseeer.com](https://enterprise.geoseeer.com)
@@ -61,8 +63,8 @@ GeoSeer delivers **industry-leading performance** across all key metrics:
 
 Visit [geoseeer.com](https://geoseeer.com) — new users can get started **for free**.
 
-1. Upload or drag & drop your image or video
-2. Choose Fast mode for quick estimation or Agent mode for deeper analysis
+1. Upload or drag & drop your image or video, or enter an event description
+2. Choose Fast mode for quick estimation, Agent mode for deeper analysis, or Event mode for text-only event investigation
 3. Optionally add context (country, source, time period, etc.)
 4. Get precise location results with confidence scores and reasoning
 
