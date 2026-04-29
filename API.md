@@ -25,7 +25,7 @@ Get your API key from the dashboard:
 
 | Method | Path | Description |
 | --- | --- | --- |
-| `POST` | `/analyze` | Analyze media or URL input. |
+| `POST` | `/analyze` | Analyze media input or text-only event input. |
 
 Full URL:
 
@@ -38,20 +38,27 @@ Full URL:
 ### Required
 
 - `X-API-Key` (header): API key.
-- Input selector (body): provide exactly one of `file`, `files`, `url`, or `urls`.
 
 ### Optional
 
-- `analysis_mode`: `fast` or `agent` (default: `fast`).
+- `analysis_mode`: `fast`, `agent`, or `event` (default: `fast`).
 - `stream`: boolean (default: `false`). Set `true` for SSE updates.
 - `user_context`: string with extra hints.
+- `event_text`: required when `analysis_mode` is `event`.
 
-### Input Shapes
+### Media Input Rules
 
+- `fast` and `agent` require media input.
+- Provide exactly one of `file`, `files`, `url`, or `urls`.
 - `file`: single image or video upload.
 - `files`: multiple image uploads only (up to 3 items).
 - `url`: single image or video URL.
 - `urls`: multiple image URLs only (up to 3 URLs).
+
+### Event Input Rules
+
+- `event` requires non-empty `event_text`.
+- `event` does not accept `file`, `files`, `url`, or `urls`.
 
 ---
 
@@ -94,12 +101,12 @@ import requests
 API_KEY = "YOUR_API_KEY"
 
 with open("media.jpg", "rb") as media_file:
-		response = requests.post(
-				"https://geoseeer.com/api/v1/analyze",
-				headers={"X-API-Key": API_KEY},
-				files={"file": media_file},
-				data={"analysis_mode": "fast"}
-		)
+    response = requests.post(
+        "https://geoseeer.com/api/v1/analyze",
+        headers={"X-API-Key": API_KEY},
+        files={"file": media_file},
+        data={"analysis_mode": "fast"}
+    )
 
 result = response.json()
 print(result["locations"][0]["address"])
@@ -160,6 +167,51 @@ curl -X POST https://geoseeer.com/api/v1/analyze \
 	}'
 ```
 
+### Event Mode: JSON Non-Streaming
+
+```bash
+curl -X POST https://geoseeer.com/api/v1/analyze \
+	-H "X-API-Key: YOUR_API_KEY" \
+	-H "Content-Type: application/json" \
+	-d '{
+		"analysis_mode": "event",
+		"event_text": "Last FIFA World Cup",
+		"stream": false
+	}'
+```
+
+### Event Mode: JSON Streaming
+
+```bash
+curl -N -X POST https://geoseeer.com/api/v1/analyze \
+	-H "X-API-Key: YOUR_API_KEY" \
+	-H "Content-Type: application/json" \
+	-d '{
+		"analysis_mode": "event",
+		"event_text": "Last FIFA World Cup",
+		"stream": true
+	}'
+```
+
+### Event Mode Success Response
+
+```json
+{
+	"status": "success",
+	"locations": [
+		{
+			"latitude": 25.420791,
+			"longitude": 51.4903763,
+			"confidence": 0.7,
+			"address": "Lusail, Qatar",
+			"reasoning": "The event text strongly suggests the 2022 FIFA World Cup in Qatar, with Lusail as the most likely match."
+		}
+	],
+	"processing_time": "4.4s",
+	"API_Requests_remaining": 108
+}
+```
+
 ---
 
 ## Response Format
@@ -211,7 +263,6 @@ Set `stream: true` to receive Server-Sent Events.
 - `branch_update`: branch status update (mostly agent mode; usually absent in fast mode).
 - `completed`: final result with `locations` and `API_Requests_remaining`.
 - `error`: processing error.
-- `cancelled`: analysis cancelled.
 
 ### SSE Example
 
@@ -233,10 +284,6 @@ data: {"type":"branch_update","branch_id":"Search Agent","status":"completed","m
 id: 104
 event: completed
 data: {"type":"complete","result":{"status":"success","locations":[{"latitude":25.7735,"longitude":-80.2859,"address":"Miami, United States","confidence":0.6,"reasoning":"Visual clues suggest a likely match in this region."}],"processing_time":"24.9s","API_Requests_remaining":67},"last_event_id":"104"}
-
-id: 105
-event: cancelled
-data: {"type":"cancelled","message":"Analysis cancelled","last_event_id":"105"}
 ```
 
 ### Python Streaming Example
@@ -248,101 +295,95 @@ import requests
 API_KEY = "YOUR_API_KEY"
 
 def analyze_with_streaming(url):
-		response = requests.post(
-				"https://geoseeer.com/api/v1/analyze",
-				headers={
-						"X-API-Key": API_KEY,
-						"Content-Type": "application/json"
-				},
-				json={"url": url, "analysis_mode": "fast", "stream": True},
-				stream=True
-		)
+    response = requests.post(
+        "https://geoseeer.com/api/v1/analyze",
+        headers={
+            "X-API-Key": API_KEY,
+            "Content-Type": "application/json"
+        },
+        json={"url": url, "analysis_mode": "fast", "stream": True},
+        stream=True
+    )
 
-		event_type = None
-		for raw_line in response.iter_lines(decode_unicode=True):
-				if not raw_line:
-						continue
-				if raw_line.startswith("event: "):
-						event_type = raw_line[7:]
-						continue
-				if not raw_line.startswith("data: "):
-						continue
+    event_type = None
+    for raw_line in response.iter_lines(decode_unicode=True):
+        if not raw_line:
+            continue
+        if raw_line.startswith("event: "):
+            event_type = raw_line[7:]
+            continue
+        if not raw_line.startswith("data: "):
+            continue
 
-				payload = json.loads(raw_line[6:])
-				if event_type == "processing":
-						print(payload.get("message", "Processing"))
-				elif event_type == "completed":
-						result = payload.get("result", {})
-						print(result["locations"][0]["address"])
-						print("Remaining:", result.get("API_Requests_remaining"))
-						return result
-				elif event_type == "cancelled":
-						print(payload.get("message", "Analysis cancelled"))
-						return None
-				elif event_type == "error":
-						raise RuntimeError(payload.get("error", "Streaming error"))
+        payload = json.loads(raw_line[6:])
+        if event_type == "processing":
+            print(payload.get("message", "Processing"))
+        elif event_type == "completed":
+            result = payload.get("result", {})
+            print(result["locations"][0]["address"])
+            print("Remaining:", result.get("API_Requests_remaining"))
+            return result
+        elif event_type == "error":
+            raise RuntimeError(payload.get("error", "Streaming error"))
 ```
 
 ### JavaScript Streaming Example
 
 ```javascript
 async function analyzeWithStreaming(fileUrl) {
-	const response = await fetch('https://geoseeer.com/api/v1/analyze', {
-		method: 'POST',
-		headers: {
-			'X-API-Key': 'YOUR_API_KEY',
-			'Content-Type': 'application/json'
-		},
-		body: JSON.stringify({
-			url: fileUrl,
-			analysis_mode: 'fast',
-			stream: true
-		})
-	});
+  const response = await fetch('https://geoseeer.com/api/v1/analyze', {
+    method: 'POST',
+    headers: {
+      'X-API-Key': 'YOUR_API_KEY',
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      url: fileUrl,
+      analysis_mode: 'fast',
+      stream: true
+    })
+  });
 
-	const reader = response.body.getReader();
-	const decoder = new TextDecoder();
-	let buffer = '';
-	let eventType = '';
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  let eventType = '';
 
-	while (true) {
-		const { done, value } = await reader.read();
-		if (done) break;
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
 
-		buffer += decoder.decode(value, { stream: true });
-		const chunks = buffer.split('\n\n');
-		buffer = chunks.pop() || '';
+    buffer += decoder.decode(value, { stream: true });
+    const chunks = buffer.split('\n\n');
+    buffer = chunks.pop() || '';
 
-		for (const chunk of chunks) {
-			const lines = chunk.split('\n');
-			let dataPayload = null;
+    for (const chunk of chunks) {
+      const lines = chunk.split('\n');
+      let dataPayload = null;
 
-			for (const line of lines) {
-				if (line.startsWith('event: ')) {
-					eventType = line.slice(7);
-				}
-				if (line.startsWith('data: ')) {
-					dataPayload = JSON.parse(line.slice(6));
-				}
-			}
+      for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          eventType = line.slice(7);
+        }
+        if (line.startsWith('data: ')) {
+          dataPayload = JSON.parse(line.slice(6));
+        }
+      }
 
-			if (!dataPayload) continue;
+      if (!dataPayload) continue;
 
-			if (eventType === 'processing') {
-				console.log(dataPayload.message || 'Processing');
-			} else if (eventType === 'completed') {
-				const result = dataPayload.result || {};
-				console.log(result.locations?.[0]?.address);
-				console.log('Remaining:', result.API_Requests_remaining);
-				return result;
-			} else if (eventType === 'cancelled') {
-				console.log(dataPayload.message || 'Analysis cancelled');
-				return null;
-			} else if (eventType === 'error') {
-				throw new Error(dataPayload.error || 'Streaming error');
-			}
-		}
-	}
+      if (eventType === 'processing') {
+        console.log(dataPayload.message || 'Processing');
+      } else if (eventType === 'completed') {
+        const result = dataPayload.result || {};
+        console.log(result.locations?.[0]?.address);
+        console.log('Remaining:', result.API_Requests_remaining);
+        return result;
+      } else if (eventType === 'error') {
+        throw new Error(dataPayload.error || 'Streaming error');
+      }
+    }
+  }
 }
 ```
 

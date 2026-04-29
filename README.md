@@ -70,12 +70,12 @@ Visit [geoseeer.com](https://geoseeer.com) — new users can get started **for f
 
 ### Via the API
 
-Get your API key from the [Dashboard](https://geoseeer.com/dashboard), then:
+Get your API key from the [Dashboard](https://geoseeer.com/dashboard), then send either a media-analysis request or a text-only event-analysis request:
 
 ```bash
 curl -X POST https://geoseeer.com/api/v1/analyze \
   -H "X-API-Key: YOUR_API_KEY" \
-  -F "image=@photo.jpg" \
+  -F "file=@photo.jpg" \
   -F "analysis_mode=fast" \
   -F "user_context=Beach photo from summer 2025"
 ```
