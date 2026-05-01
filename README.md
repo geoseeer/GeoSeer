@@ -39,7 +39,7 @@ Shared system components include:
 - 📝 **Event Search Support** — Run text-only event geolocation searches without requiring file upload
 - 🔒 **Privacy-First** — Uploaded media is processed in real-time and immediately discarded after analysis
 - 🔌 **Developer API** — Simple REST API with streaming (SSE) support for easy integration
-- 🏢 **Enterprise Ready** — Custom rate limits, dedicated support, and scalable infrastructure via [enterprise.geoseeer.com](https://enterprise.geoseeer.com)
+- 🏢 **Enterprise Ready** — Custom rate limits, white-label API access, and self-host support via [enterprise.geoseeer.com](https://enterprise.geoseeer.com)
 
 ---
 
@@ -88,10 +88,10 @@ See the full [API Documentation](https://geoseeer.com/api-docs) or our [API.md](
 
 | Plan | Price | Includes |
 |------|-------|----------|
-| **Free** | $0 forever | 1 search/day on web, 10 total API calls |
-| **Starter** | $19/mo ($9/mo annual) | 100 searches/mo, 100 API calls/mo, priority processing |
-| **Pro** | $69/mo ($29/mo annual) | Unlimited web searches, 1,000 API calls/mo |
-| **Enterprise** | Custom | Custom limits, dedicated support — [enterprise.geoseeer.com](https://enterprise.geoseeer.com) |
+| **Free** | $0 forever | Fast Mode access, 1 search/day on web, 10 total API calls |
+| **Starter** | $19/mo ($9/mo annual) | All analysis modes, 100 searches/mo, 100 API calls/mo, priority processing |
+| **Pro** | $69/mo ($29/mo annual) | Everything in Starter, unlimited web searches, 1,000 API calls/mo, white-label API access |
+| **Enterprise** | Custom | Custom limits, white-label API access, self-host support — [enterprise.geoseeer.com](https://enterprise.geoseeer.com) |
 
 > Starter and Pro plans: $0.20 per additional call beyond monthly limit.
 
