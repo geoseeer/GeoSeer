@@ -41,10 +41,15 @@ Full URL:
 
 ### Optional
 
-- `analysis_mode`: `fast`, `agent`, or `event` (default: `fast`).
+- `analysis_mode`: `fast`, `agent`, or `event` (default: `fast`). Free plan supports `fast` only. Starter and Pro support all three modes.
 - `stream`: boolean (default: `false`). Set `true` for SSE updates.
 - `user_context`: string with extra hints.
 - `event_text`: required when `analysis_mode` is `event`.
+
+### Plan Entitlement
+
+- Free plan callers must use `analysis_mode=fast`.
+- Starter and Pro callers can use `fast`, `agent`, or `event`.
 
 ### Media Input Rules
 
@@ -249,6 +254,19 @@ Canonical success responses include `locations` and `API_Requests_remaining`.
 - `API_Requests_remaining` is a number.
 - `processing_time` is a string with an `s` suffix.
 - `status` is `"success"` for successful responses.
+
+---
+
+## Error Codes
+
+- `400`: Invalid request.
+- `401`: Unauthorized.
+- `403`: `free_plan_fast_mode_only`.
+  - Message: `Free plan supports fast mode only. Upgrade to Starter or Pro for agent/event modes.`
+- `402`: Usage limit reached.
+- `413`: File too large.
+- `429`: Queue full.
+- `500`: Server error.
 
 ---
 
