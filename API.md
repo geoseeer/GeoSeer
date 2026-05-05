@@ -261,9 +261,9 @@ Canonical success responses include `locations` and `API_Requests_remaining`.
 
 - `400`: Invalid request.
 - `401`: Unauthorized.
+- `402`: Usage limit reached.
 - `403`: `free_plan_fast_mode_only`.
   - Message: `Free plan supports fast mode only. Upgrade to Starter or Pro for agent/event modes.`
-- `402`: Usage limit reached.
 - `413`: File too large.
 - `429`: Queue full.
 - `500`: Server error.
