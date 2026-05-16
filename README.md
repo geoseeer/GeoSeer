@@ -45,15 +45,17 @@ Shared system components include:
 
 ## Performance Benchmarks
 
-GeoSeer delivers **industry-leading performance** across all key metrics:
+The results below summarize a fixed evaluation protocol covering geolocation accuracy, billed cost per completed query, and end-to-end response latency.
 
 | Metric | GeoSeer | Picarta | Avg. AI Wrappers | Other |
 |--------|---------|---------|------------------|-------|
-| **Accuracy** | **83%** | 54% | 35% | 47% (EarthKit Agent) |
+| **Accuracy (@1 km)** | **83%** | 54% | 35% | 47% (EarthKit Agent) |
 | **Cost per Query** | **$0.20** | $0.90 | $0.50 | $1.50 (Hiring Expert) |
-| **Latency (Fast)** | **10s** | 13s | 17s | 44s (EarthKit Agent) |
+| **Latency (Fast, p50)** | **10s** | 13s | 17s | 44s (EarthKit Agent) |
 
-> Benchmark: 150 diverse images (50 urban, 50 rural, 50 indoor). Success thresholds: Urban ≤1km², Rural ≤10km², Indoor ≤5km².
+> Benchmark scope: Accuracy results use 150 held-out images across 50 urban, 50 rural, and 50 indoor scenes with verified coordinates. Cost results reflect public self-serve pricing in May 2026 for one image per request. Latency results reflect warm requests from a US East client with concurrency fixed at 1.
+>
+> Reporting notes: Accuracy is reported at 1 km and supported by additional distance-error analysis. Latency is reported as p50 response time, with p95 tracked in the full methodology. Products without public access or reproducible request conditions are excluded.
 
 ---
 
