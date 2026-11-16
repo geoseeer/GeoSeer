@@ -45,17 +45,23 @@ Shared system components include:
 
 ## Performance Benchmarks
 
-The results below summarize a fixed evaluation protocol covering geolocation accuracy, billed cost per completed query, and end-to-end response latency.
+Updated **November 16, 2026**. Accuracy uses IM2GPS3k, and costs use entry monthly consumer plans with fixed search allowances, falling back to entry prepaid credits when no such plan exists. See the [full results, sources, and methodology](https://geoseeer.com/benchmarks).
 
-| Metric | GeoSeer | Picarta | Avg. AI Wrappers | Other |
-|--------|---------|---------|------------------|-------|
-| **Accuracy (@1 km)** | **83%** | 54% | 35% | 47% (EarthKit Agent) |
-| **Cost per Query** | **$0.20** | $0.90 | $0.50 | $1.50 (Hiring Expert) |
-| **Latency (Fast, p50)** | **10s** | 13s | 17s | 44s (EarthKit Agent) |
+| Provider | IM2GPS3k accuracy @ 1 km | Latency | Reference paid cost / search |
+|----------|-------------------------|---------|----------------------------------|
+| **GeoSeer** | [**67%**](https://geoseeer.com/benchmarks#accuracy) | **10s**, Fast · GeoSeer API | [**$0.19**](https://geoseeer.com/#pricing), Starter $19/month / 100 web searches |
+| GeoAxis | — No published IM2GPS3k result | 35s, Global Search Low · GeoAxis API | [$0.90](https://geoaxis.ai/pricing), prepaid credits, minimum $10 purchase |
+| Oceanir | [22.52%](https://oceanir.ai/geoestimation), Manta Geo-Estimation | — API not tested | [$1.00](https://oceanir.ai/pricing), Starter $10/month / 10 Orca Max detailed analyses |
+| Picarta | [44.8%](https://picarta.ai/picarta-v2), V2.1 | 12s, standard image search · Picarta API | [$0.60](https://picarta.ai/pricing), $59.90/month / 100 searches, rounded |
+| GeoInfer | [50%](https://docs.geoinfer.com/faq), Global | [1s](https://geoinfer.com/en), published inference reference | [$0.10](https://geoinfer.com/en/pricing), $4.99 / 50 global predictions, rounded |
 
-> Benchmark scope: Accuracy results use 150 held-out images across 50 urban, 50 rural, and 50 indoor scenes with verified coordinates. Cost results reflect public self-serve pricing in May 2026 for one image per request. Latency results reflect warm requests from a US East client with concurrency fixed at 1.
+> Accuracy: GeoSeer tested the full [IM2GPS3k benchmark](https://github.com/lugiavn/revisiting-im2gps) itself; competitor figures are linked vendor-published results from separate evaluations. Model versions, training data, prediction-selection rules, and experimental conditions can differ. Oceanir's accuracy result describes Manta, which requires organizational access; its displayed cost covers public Orca Max analysis.
 >
-> Reporting notes: Accuracy is reported at 1 km and supported by additional distance-error analysis. Latency is reported as p50 response time, with p95 tracked in the full methodology. Products without public access or reproducible request conditions are excluded.
+> Latency: GeoSeer tested its own, GeoAxis's, and Picarta's APIs. The p50 values retain the October 14, 2026 test snapshot and selected modes. GeoInfer's displayed 1s represents its advertised sub-second inference, rather than a GeoSeer-measured API p50. Oceanir's API has not been timed. GeoAxis now [advertises](https://geoaxis.ai/) approximately 5s for Instant and 20s for Low; these are separate provider-reported production timings.
+>
+> Cost: Apply the same rule to all providers: use the entry monthly consumer plan with a fixed search allowance; otherwise use the entry prepaid pack or published credit rate. Divide price by included complete searches, assuming full utilization before allowance or credit expiry. GeoSeer's denominator is its 100 web searches; its separate API allowance is not added. [GeoAxis](https://geoaxis.ai/pricing) and [GeoInfer](https://geoinfer.com/en/pricing) advertise unlimited consumer subscriptions, whose effective per-search costs depend on actual usage, so the table uses their prepaid rates. GeoInfer [uses one credit per global prediction](https://docs.geoinfer.com/faq). Higher tiers and larger packs are separate: [Oceanir Pro](https://oceanir.ai/pricing) includes 300 detailed analyses for $29/month (about $0.10 each at full utilization). Free allowances, trials, promotions, annual billing, and negotiated enterprise rates are excluded. Commercial API pricing can differ from these consumer search references.
+
+Providers were selected for their popularity, strong geolocation accuracy, and public availability at the comparison date. Access-restricted services such as [GeoSpy (now Raven)](https://graylark.com/raven/faq) and broader enterprise platforms such as [Palantir Foundry](https://www.palantir.com/platforms/foundry/) fall outside this product comparison. Individual model access is identified in the methodology.
 
 ---
 
