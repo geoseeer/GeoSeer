@@ -106,6 +106,18 @@ print(result["locations"])
 
 See the [Python SDK guide](https://github.com/geoseeer/GeoSeer/blob/main/API.md#python-sdk) for URL input, Event mode, and streaming, or the [API documentation](https://geoseeer.com/api-docs) for the full HTTP reference.
 
+### Command line
+
+The `geoseeer` command is included in `geoseeer` 0.2.0 and later. Install or upgrade with `python -m pip install --upgrade geoseeer` and set `GEOSEER_API_KEY` to your GeoSeer API key.
+
+```bash
+geoseeer analyze --file photo.jpg
+geoseeer analyze --url https://example.com/photo.jpg --mode agent --stream
+geoseeer analyze --event-text "Final held at Lusail Stadium in Qatar"
+```
+
+See the [CLI guide](https://github.com/geoseeer/GeoSeer/blob/main/API.md#command-line) for input options, output formats, and exit codes.
+
 ---
 
 ## Pricing

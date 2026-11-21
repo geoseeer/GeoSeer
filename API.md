@@ -207,7 +207,7 @@ does not publish a share.
 
 ## Python SDK
 
-The `geoseeer` package supports Python 3.11 and later. Install it with `pip install geoseeer` after the first release, or run `python -m pip install .` from this repository to try the current source.
+The published [`geoseeer` package](https://pypi.org/project/geoseeer/) supports Python 3.11 and later. Install it with `python -m pip install --upgrade geoseeer`, or run `python -m pip install .` from the repository to try its current source.
 
 Set `GEOSEER_API_KEY` or pass `api_key` to `GeoSeer`. Use `base_url` or `GEOSEER_BASE_URL` to target a compatible API with a different base URL, including its `/api/v1` path.
 
@@ -233,7 +233,23 @@ with client.stream(files="photo.jpg") as events:
 
 HTTP errors raise `geoseeer.APIError` with `status_code`, `code`, `details`, and `retry_after` where available. Invalid responses and streams that end without a terminal event raise `geoseeer.GeoSeerError`. Network errors propagate from `requests`. Both methods send a single analysis request without automatic retries.
 
-### Publishing the SDK
+## Command line
+
+The `geoseeer` executable is included in version 0.2.0 and later. Set `GEOSEER_API_KEY` in your environment. Set `GEOSEER_BASE_URL` to use a compatible endpoint, including its `/api/v1` path.
+
+```bash
+geoseeer --version
+geoseeer analyze --help
+geoseeer analyze --file front.jpg --file side.jpg --mode agent --context "A coastal city"
+geoseeer analyze --url https://example.com/photo.jpg --stream
+geoseeer analyze --event-text "Final held at Lusail Stadium in Qatar"
+```
+
+Choose one input type per command. Repeat `--file` or `--url` up to three times to send multiple clues in one request. Media analysis defaults to Fast mode and accepts `--mode agent` and optional `--context`. `--event-text` selects Event mode and includes any context in the description itself. Agent and Event modes require a paid plan.
+
+The CLI writes the JSON result to standard output. With `--stream`, it writes one JSON object per line as events arrive, including the terminal event. Diagnostics go to standard error. Exit status `0` indicates success, `1` indicates a request, file, or stream failure, `2` indicates invalid usage or a missing API key, and `130` indicates an interrupt.
+
+## Publishing the package
 
 For automated releases, add a GitHub Actions Trusted Publisher in the PyPI project's publishing settings. If the project does not exist yet, add a pending publisher in [PyPI account settings](https://pypi.org/manage/account/publishing/). Use these values for either setup.
 
@@ -245,7 +261,7 @@ For automated releases, add a GitHub Actions Trusted Publisher in the PyPI proje
 | Workflow name | `publish.yml` |
 | Environment name | `pypi` |
 
-To publish a new version, update `pyproject.toml` and push a matching tag prefixed with `v`. The workflow builds the wheel and source distribution, checks both, runs the client tests against the installed wheel, and publishes through Trusted Publishing.
+To publish a new version, update `pyproject.toml` and push a matching tag prefixed with `v`. The workflow builds the wheel and source distribution, checks both, tests the SDK and CLI against the installed wheel, and publishes through Trusted Publishing.
 
 ## Executable examples
 
