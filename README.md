@@ -1,8 +1,8 @@
-# GeoSeer — AI-Powered Image Geolocation Platform 🌍🔍
+# GeoSeer AI image geolocation — geoseeer.com 🌍🔍
 
-[GeoSeer](https://geoseeer.com) is a professional-grade **AI geolocation intelligence platform** for image geolocation, broader visual geolocation workflows, and real-world event analysis. It pinpoints exact locations from images with state-of-the-art accuracy, and also supports image sets, short video analysis, and text-only event searches. Using an advanced **agentic workflow with fast, agent, and event modes**, GeoSeer combines rapid estimation with sophisticated multi-step reasoning and tool calling to deliver professional-grade results at a fraction of the cost and time.
+[GeoSeer](https://geoseeer.com) analyzes images, multiple image clues, videos, and real-world event descriptions to suggest locations and explain the clues behind them. **Fast** provides rapid estimation, **Agent** uses tools and multi-step reasoning for a more extensive search, and **Event** investigates locations from text descriptions.
 
-> Upload a photo, image set, or short video, or enter an event description → Get precise GPS coordinates, address, and reasoning.
+> Upload a photo, image set, or video, or enter an event description → Review location candidates with coordinates, addresses, and reasoning.
 
 ---
 
@@ -34,10 +34,10 @@ Shared system components include:
 ## Features
 
 - 🧠 **Agentic AI Architecture** — Advanced multi-step reasoning with tool calling for pinpoint accuracy
-- ⚡ **Three Processing Modes** — GS-Fast (~10s, rapid estimation), GS-Agent (~30-60s, comprehensive analysis), and GS-Event (~50-150s depending on search complexity)
+- ⚡ **Three Processing Modes** — Fast for rapid estimation, Agent for a more extensive search, and Event for text-only investigation. Fast measured 10 seconds at API p50 in the October 14, 2026 tests; timing varies with input, load, and network conditions
 - 🌐 **Global Coverage** — Geolocate photos, image sets, and video from anywhere on Earth
 - 📝 **Event Search Support** — Run text-only event geolocation searches without requiring file upload
-- 🔒 **Privacy-First** — Uploaded media is processed in real-time and immediately discarded after analysis
+- 🔒 **Processing & Sharing** — Media is stored temporarily during analysis, and cleanup attempts to remove processing files afterward. Saving or sharing a result can retain result data and associated media separately
 - 🔌 **Developer API** — Simple REST API with streaming (SSE) support for easy integration
 - 🏢 **Enterprise Ready** — Custom rate limits, white-label API access, and self-host support via [enterprise.geoseeer.com](https://enterprise.geoseeer.com)
 
@@ -49,7 +49,7 @@ Updated **November 16, 2026**. Accuracy uses IM2GPS3k, and costs use entry month
 
 | Provider | IM2GPS3k accuracy @ 1 km | Latency | Reference paid cost / search |
 |----------|-------------------------|---------|----------------------------------|
-| **GeoSeer** | [**67%**](https://geoseeer.com/benchmarks#accuracy) | **10s**, Fast · GeoSeer API | [**$0.19**](https://geoseeer.com/#pricing), Starter $19/month / 100 web searches |
+| **GeoSeer** | [**67%**](https://geoseeer.com/benchmarks#accuracy), Agent | **10s**, Fast · GeoSeer API p50 | [**$0.19**](https://geoseeer.com/#pricing), Starter $19/month / 100 web searches |
 | GeoAxis | — No published IM2GPS3k result | 35s, Global Search Low · GeoAxis API | [$0.90](https://geoaxis.ai/pricing), prepaid credits, minimum $10 purchase |
 | Oceanir | [22.52%](https://oceanir.ai/geoestimation), Manta Geo-Estimation | — API not tested | [$1.00](https://oceanir.ai/pricing), Starter $10/month / 10 Orca Max detailed analyses |
 | Picarta | [44.8%](https://picarta.ai/picarta-v2), V2.1 | 12s, standard image search · Picarta API | [$0.60](https://picarta.ai/pricing), $59.90/month / 100 searches, rounded |
@@ -97,11 +97,11 @@ See the full [API Documentation](https://geoseeer.com/api-docs) or our [API.md](
 | Plan | Price | Includes |
 |------|-------|----------|
 | **Free** | $0 forever | Fast Mode access, 1 search/day on web, 10 total API calls |
-| **Starter** | $19/mo ($9/mo annual) | All analysis modes, 100 searches/mo, 100 API calls/mo, priority processing |
-| **Pro** | $69/mo ($29/mo annual) | Everything in Starter, unlimited web searches, 1,000 API calls/mo, white-label API access |
+| **Starter** | $19/month; or $9/month billed annually | All analysis modes, 100 searches/mo, 100 API calls/mo, priority processing |
+| **Pro** | $69/month; or $29/month billed annually | Everything in Starter, unlimited web searches, 1,000 API calls/mo, white-label API access |
 | **Enterprise** | Custom | Custom limits, white-label API access, self-host support — [enterprise.geoseeer.com](https://enterprise.geoseeer.com) |
 
-> Starter and Pro plans: $0.20 per additional call beyond monthly limit.
+> Eligible paid plans can purchase additional web-search or API credits from the dashboard at $0.20 per credit, sold in packs of five.
 
 ---
 

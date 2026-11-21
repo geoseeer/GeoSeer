@@ -1,0 +1,931 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "GeoSeer external API",
+    "version": "1.0.0",
+    "description": "The direct GeoSeer API for analyzing images, videos and event descriptions."
+  },
+  "servers": [
+    {
+      "url": "https://geoseeer.com"
+    }
+  ],
+  "paths": {
+    "/api/v1/analyze": {
+      "post": {
+        "operationId": "analyze",
+        "summary": "Analyze media or event text for likely locations",
+        "description": "The direct API authenticates with X-API-Key. Free supports Fast only. Starter, Pro and Enterprise support Fast, Agent and Event, subject to credits. Standard per-account limits are 1 request per second and 10 requests per minute, plus rolling 24-hour limits of 100 calls on Free, 500 on Starter, and 2,000 on Pro and Enterprise. Limits can vary by deployment or account. Repeated invalid inputs can cause a temporary block. Each analysis accepts up to three media clues for a single result set. Supported image extensions are JPG/JPEG, PNG, WEBP, HEIC and HEIF. Supported video extensions are MP4, MOV, AVI, MKV and WEBM. URL downloads require a supported image/video Content-Type when supplied. Uploads are capped at 10 MiB for the complete request body, including multipart overhead, and each URL download is capped at 10 MiB. Event mode is text-only. After admission, the API reserves credit and charges it on successful completion. Failed analyses with no usable locations and cancelled analyses release uncharged holds. Synchronous analysis waits up to 330 seconds by default after queuing. An SSE connection has a 300-second server timeout, can send keepalive comments, and closes after the terminal state. Progress, branch and error messages may precede the terminal state. On this direct endpoint, a failed job emits error and a cancelled job emits cancelled. Completion emits completed with type complete and a nested result. The website's separate browser stream uses failed for both failure and cancellation and primarily returns candidates instead of locations.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/UploadRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EventFormRequest"
+                  }
+                ]
+              },
+              "encoding": {
+                "file": {
+                  "contentType": "application/octet-stream"
+                },
+                "files": {
+                  "contentType": "application/octet-stream"
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "oneOf": [
+                  {
+                    "$ref": "#/components/schemas/UrlRequest"
+                  },
+                  {
+                    "$ref": "#/components/schemas/EventRequest"
+                  }
+                ]
+              },
+              "examples": {
+                "url": {
+                  "value": {
+                    "url": "https://example.com/photo.jpg"
+                  }
+                },
+                "event": {
+                  "value": {
+                    "analysis_mode": "event",
+                    "event_text": "Opening ceremony of the 2012 Summer Olympics"
+                  }
+                }
+              }
+            },
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/EventFormRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Completed analysis in JSON or an accepted analysis as a UTF-8 SSE stream. HTTP 200 on a stream can be followed by an in-band error or cancellation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnalysisSuccess"
+                },
+                "example": {
+                  "status": "success",
+                  "locations": [
+                    {
+                      "latitude": 40.758,
+                      "longitude": -73.9855,
+                      "confidence": 0.77,
+                      "address": "New York, United States",
+                      "reasoning": "The street signs and building frontage match Times Square."
+                    }
+                  ],
+                  "processing_time": "12.4s",
+                  "API_Requests_remaining": 9
+                }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "Server-Sent Events frames with event and data lines, optional id lines, and a blank line delimiter. Data lines contain JSON matching the corresponding x-sse-events schema. Keepalive comments do not carry JSON."
+                },
+                "example": "id: 1\nevent: processing\ndata: {\"type\":\"progress\",\"message\":\"Processing...\",\"last_event_id\":\"1\"}\n\n",
+                "x-sse-events": {
+                  "processing": {
+                    "$ref": "#/components/schemas/StreamProgress"
+                  },
+                  "branch_point": {
+                    "$ref": "#/components/schemas/StreamBranchPoint"
+                  },
+                  "branch_update": {
+                    "$ref": "#/components/schemas/StreamBranchUpdate"
+                  },
+                  "completed": {
+                    "$ref": "#/components/schemas/StreamCompleted"
+                  },
+                  "error": {
+                    "$ref": "#/components/schemas/StreamError"
+                  },
+                  "cancelled": {
+                    "$ref": "#/components/schemas/StreamCancelled"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid field, missing input, rejected event, or failed analysis (including no usable locations). Common codes are missing_required_field, invalid_field_value, invalid_request and event_invalid_input.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "invalid_request",
+                    "message": "No results found"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing or invalid API key. Codes: missing_credentials and invalid_credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "missing_credentials",
+                    "message": "API key required in X-API-Key header"
+                  }
+                }
+              }
+            }
+          },
+          "402": {
+            "description": "The account has insufficient API credits. Credit totals may appear in error.details.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "insufficient_api_credits",
+                    "message": "Usage limit exceeded"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The account's plan does not allow the requested mode.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "free_plan_fast_mode_only",
+                    "message": "Free plan supports fast mode only. Upgrade to Starter or Pro for agent/event modes."
+                  }
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request body exceeds the upload limit. Some request parsing or gateway failures can have a different status or body.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "invalid_field_value",
+                    "message": "The uploaded file is too large. Maximum size is 10 MB."
+                  }
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "An account request limit was reached or the analysis queue is full.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "rate_limited",
+                    "message": "Each external API user is limited to 10 requests per minute.",
+                    "details": {
+                      "retry_after_seconds": 60
+                    }
+                  }
+                }
+              }
+            },
+            "headers": {
+              "Retry-After": {
+                "description": "Delay in seconds, present when error.details.retry_after_seconds is supplied. Queue-full errors can omit it.",
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal request handling or result retrieval failed, including some malformed or oversized request bodies caught during route parsing.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "internal_server_error",
+                    "message": "Internal server error"
+                  }
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Analysis state is temporarily unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "service_unavailable",
+                    "message": "Analysis state is temporarily unavailable."
+                  }
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "The application reached its synchronous analysis wait deadline and attempted cancellation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                },
+                "example": {
+                  "success": false,
+                  "error": {
+                    "code": "service_unavailable",
+                    "message": "The analysis timed out before completion."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      }
+    },
+    "schemas": {
+      "UploadRequest": {
+        "type": "object",
+        "properties": {
+          "analysis_mode": {
+            "type": "string",
+            "enum": [
+              "fast",
+              "agent"
+            ],
+            "default": "fast"
+          },
+          "stream": {
+            "type": "string",
+            "enum": [
+              "false",
+              "true"
+            ],
+            "default": "false",
+            "description": "The form value true selects Server-Sent Events."
+          },
+          "user_context": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Optional context. It is trimmed and blank text is treated as absent. The limit applies after trimming."
+          },
+          "file": {
+            "type": "string",
+            "format": "binary"
+          },
+          "files": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": {
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "file"
+            ]
+          },
+          {
+            "required": [
+              "files"
+            ]
+          }
+        ],
+        "description": "Use one file part or up to three repeated files parts. Compatibility aliases: image, images and images[]. If plural parts are present the parser uses those and ignores singular parts."
+      },
+      "UrlRequest": {
+        "type": "object",
+        "properties": {
+          "analysis_mode": {
+            "type": "string",
+            "enum": [
+              "fast",
+              "agent"
+            ],
+            "default": "fast"
+          },
+          "stream": {
+            "type": "boolean",
+            "default": false,
+            "description": "True selects Server-Sent Events."
+          },
+          "user_context": {
+            "type": "string",
+            "maxLength": 500,
+            "description": "Optional context. It is trimmed and blank text is treated as absent. The limit applies after trimming."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https?://",
+            "description": "A publicly reachable, direct HTTP(S) media URL."
+          },
+          "urls": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 3,
+            "items": {
+              "type": "string",
+              "format": "uri",
+              "pattern": "^https?://",
+              "description": "A publicly reachable, direct HTTP(S) media URL."
+            }
+          }
+        },
+        "oneOf": [
+          {
+            "required": [
+              "url"
+            ]
+          },
+          {
+            "required": [
+              "urls"
+            ]
+          }
+        ],
+        "description": "Prefer url for one item and urls for multiple items. The API also accepts image_url and image_urls and counts URLs across combined URL fields toward the three-item limit."
+      },
+      "EventRequest": {
+        "type": "object",
+        "properties": {
+          "analysis_mode": {
+            "const": "event"
+          },
+          "event_text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Text is trimmed. Limits apply after trimming."
+          },
+          "stream": {
+            "type": "boolean",
+            "default": false,
+            "description": "True selects Server-Sent Events."
+          }
+        },
+        "required": [
+          "analysis_mode",
+          "event_text"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "url"
+              ]
+            },
+            {
+              "required": [
+                "urls"
+              ]
+            },
+            {
+              "required": [
+                "image_url"
+              ]
+            },
+            {
+              "required": [
+                "image_urls"
+              ]
+            },
+            {
+              "required": [
+                "file"
+              ]
+            },
+            {
+              "required": [
+                "files"
+              ]
+            },
+            {
+              "required": [
+                "image"
+              ]
+            },
+            {
+              "required": [
+                "images"
+              ]
+            },
+            {
+              "required": [
+                "images[]"
+              ]
+            }
+          ]
+        },
+        "description": "Describe an event associated with a single specific place. The server also accepts text or user_context in place of event_text."
+      },
+      "EventFormRequest": {
+        "type": "object",
+        "properties": {
+          "analysis_mode": {
+            "const": "event"
+          },
+          "event_text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "description": "Text is trimmed. Limits apply after trimming."
+          },
+          "stream": {
+            "type": "string",
+            "enum": [
+              "false",
+              "true"
+            ],
+            "default": "false",
+            "description": "The form value true selects Server-Sent Events."
+          }
+        },
+        "required": [
+          "analysis_mode",
+          "event_text"
+        ],
+        "not": {
+          "anyOf": [
+            {
+              "required": [
+                "url"
+              ]
+            },
+            {
+              "required": [
+                "urls"
+              ]
+            },
+            {
+              "required": [
+                "image_url"
+              ]
+            },
+            {
+              "required": [
+                "image_urls"
+              ]
+            },
+            {
+              "required": [
+                "file"
+              ]
+            },
+            {
+              "required": [
+                "files"
+              ]
+            },
+            {
+              "required": [
+                "image"
+              ]
+            },
+            {
+              "required": [
+                "images"
+              ]
+            },
+            {
+              "required": [
+                "images[]"
+              ]
+            }
+          ]
+        },
+        "description": "Describe an event associated with a single specific place. The server also accepts text or user_context in place of event_text."
+      },
+      "Location": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "confidence": {
+            "type": [
+              "number",
+              "string"
+            ],
+            "description": "Score normally between 0 and 1. The endpoint preserves the engine's numeric value and may pass through a numeric string. Agent quality is not a calibrated probability of correctness."
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reasoning": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "match_strength": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "confidence_method": {
+            "type": "string"
+          },
+          "confidence_details": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude",
+          "confidence",
+          "address",
+          "reasoning"
+        ],
+        "description": "Other formatter profiles can supply match_strength, confidence_method and confidence_details. The current direct external formatter does not emit these fields."
+      },
+      "CreditsRemaining": {
+        "oneOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "const": "unlimited"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "description": "Remaining API credits, unlimited for unlimited allowances, or null if a total is unavailable."
+      },
+      "AnalysisSuccess": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "const": "success"
+          },
+          "locations": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "#/components/schemas/Location"
+            }
+          },
+          "processing_time": {
+            "type": "string",
+            "description": "Elapsed processing time, usually expressed in seconds (for example, 12.4s)."
+          },
+          "API_Requests_remaining": {
+            "$ref": "#/components/schemas/CreditsRemaining"
+          },
+          "early_exit": {
+            "type": "boolean"
+          },
+          "exit_reason": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "locations",
+          "processing_time",
+          "API_Requests_remaining"
+        ]
+      },
+      "ApiError": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "const": false
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "type": "object",
+                "properties": {
+                  "retry_after_seconds": {
+                    "type": "integer",
+                    "minimum": 1
+                  }
+                }
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "success",
+          "error"
+        ]
+      },
+      "StreamProgress": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "progress"
+          },
+          "last_event_id": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "Mirror of the SSE id line when an ID is present."
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "message"
+        ]
+      },
+      "StreamBranchPoint": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "branch_point"
+          },
+          "last_event_id": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "Mirror of the SSE id line when an ID is present."
+          },
+          "branch_point": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "StreamBranchUpdate": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "branch_update"
+          },
+          "last_event_id": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "Mirror of the SSE id line when an ID is present."
+          },
+          "status": {
+            "enum": [
+              "processing",
+              "completed",
+              "failed"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "status"
+        ]
+      },
+      "StreamCompleted": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "complete"
+          },
+          "last_event_id": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "Mirror of the SSE id line when an ID is present."
+          },
+          "result": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "const": "success"
+              },
+              "locations": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/StreamLocation"
+                }
+              },
+              "processing_time": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "API_Requests_remaining": {
+                "$ref": "#/components/schemas/CreditsRemaining"
+              },
+              "early_exit": {
+                "type": "boolean"
+              },
+              "exit_reason": {
+                "type": "string"
+              },
+              "remaining_api": {
+                "description": "Compatibility field passed through if present in the stored result."
+              }
+            },
+            "required": [
+              "status",
+              "locations",
+              "processing_time",
+              "API_Requests_remaining"
+            ]
+          }
+        },
+        "required": [
+          "type",
+          "result"
+        ]
+      },
+      "StreamError": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "error"
+          },
+          "last_event_id": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "Mirror of the SSE id line when an ID is present."
+          },
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "error_code": {
+            "type": "string"
+          },
+          "timeout_seconds": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "type",
+          "error",
+          "message"
+        ]
+      },
+      "StreamCancelled": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "const": "cancelled"
+          },
+          "last_event_id": {
+            "type": "string",
+            "pattern": "^[0-9]+$",
+            "description": "Mirror of the SSE id line when an ID is present."
+          },
+          "message": {
+            "type": "string"
+          },
+          "error_code": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "message",
+          "error_code"
+        ]
+      },
+      "StreamLocation": {
+        "type": "object",
+        "description": "The stream forwards stored external locations. Historical results can omit reasoning.",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "confidence": {
+            "type": [
+              "number",
+              "string"
+            ],
+            "description": "Score normally between 0 and 1. The endpoint preserves the engine's numeric value and may pass through a numeric string. Agent quality is not a calibrated probability of correctness."
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "reasoning": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "match_strength": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "confidence_method": {
+            "type": "string"
+          },
+          "confidence_details": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "latitude",
+          "longitude",
+          "confidence",
+          "address"
+        ]
+      }
+    }
+  }
+}

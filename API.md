@@ -1,427 +1,235 @@
-# GeoSeer API Documentation
+# GeoSeer External API
 
-This document mirrors the current API contract shown on the GeoSeer API Docs page.
+GeoSeer analyzes images, videos, and text-only event descriptions. Send
+`POST https://geoseeer.com/api/v1/analyze` from a server or local program with
+the `X-API-Key` header. Store the API key in an environment variable or secret
+store and keep it out of browser code.
 
-- Base URL: `https://geoseeer.com/api/v1`
-- Interactive docs: `https://geoseeer.com/api-docs`
+[OpenAPI document](openapi.json)
 
----
+## Request limits and supported formats
 
-## Authentication
+- Submit up to three media items as clues for one analysis. The API returns
+  one set of location candidates for the request.
+- The application limits the entire HTTP request body to 10 MiB. Allow room
+  for multipart headers and boundaries when uploading files. Each URL download
+  may contain up to 10 MiB of media.
+- Upload filenames must use an accepted suffix. URL downloads should return the
+  exact media content type listed below. Actual media must decode successfully.
 
-All requests require the `X-API-Key` header.
-
-```http
-X-API-Key: YOUR_API_KEY
-```
-
-Get your API key from the dashboard:
-
-- `https://geoseeer.com/dashboard`
-
----
-
-## Endpoint
-
-| Method | Path | Description |
+| Input | Upload suffixes | URL response content types |
 | --- | --- | --- |
-| `POST` | `/analyze` | Analyze media input or text-only event input. |
+| Images | `jpg`, `jpeg`, `png`, `webp`, `heic`, `heif` | `image/jpeg`, `image/jpg`, `image/png`, `image/webp`, `image/heic`, `image/heif` |
+| Videos | `mp4`, `mov`, `avi`, `mkv`, `webm` | `video/mp4`, `video/quicktime`, `video/x-msvideo`, `video/x-matroska`, `video/webm` |
 
-Full URL:
+## Analysis modes and access
 
-`https://geoseeer.com/api/v1/analyze`
+| Mode | Input | Plan access |
+| --- | --- | --- |
+| `fast` (default) | Media | Free and paid API plans |
+| `agent` | Media | Paid API plans |
+| `event` | Event description | Paid API plans |
 
----
+Standard per-user daily limits use a rolling 24-hour window. The default limit
+is 100 calls, Starter is 500, and Pro and Enterprise are 2,000. Marketplace
+subscribers use the default daily limit. Direct API keys are also limited to one
+request per second and 10 requests per minute. Repeated invalid inputs can
+trigger a temporary block.
 
-## Request Parameters
+## Request formats
 
-### Required
+Use one input shape per analysis. Set `analysis_mode` to select a mode. JSON
+requests use a Boolean `stream`; multipart requests use the text value `true`
+or `false`. Streaming defaults to `false`.
 
-- `X-API-Key` (header): API key.
+### Multipart upload
 
-### Optional
+Use a single `file` part or repeat the `files` part for multiple uploads. Use
+`user_context` to supply optional clues for Fast or Agent mode. Context may
+contain up to 500 characters after trimming.
 
-- `analysis_mode`: `fast`, `agent`, or `event` (default: `fast`). Free plan supports `fast` only. Starter and Pro support all three modes.
-- `stream`: boolean (default: `false`). Set `true` for SSE updates.
-- `user_context`: string with extra hints.
-- `event_text`: required when `analysis_mode` is `event`.
+The upload aliases `image`, `images`, and `images[]` remain accepted. Use one
+field family for interoperability with other clients. Repeated plural fields
+are collected first, and singular fields are used only when the plural fields
+supply no files.
 
-### Plan Entitlement
+### JSON URL input
 
-- Free plan callers must use `analysis_mode=fast`.
-- Starter and Pro callers can use `fast`, `agent`, or `event`.
-
-### Media Input Rules
-
-- `fast` and `agent` require media input.
-- Provide exactly one of `file`, `files`, `url`, or `urls`.
-- `file`: single image or video upload.
-- `files`: multiple image uploads only (up to 3 items).
-- `url`: single image or video URL.
-- `urls`: multiple image URLs only (up to 3 URLs).
-
-### Event Input Rules
-
-- `event` requires non-empty `event_text`.
-- `event` does not accept `file`, `files`, `url`, or `urls`.
-
----
-
-## Supported Formats And Limits
-
-### Images
-
-- JPG
-- PNG
-- WebP
-- HEIC
-
-### Video
-
-- MP4
-- MOV
-- WebM
-
-### Limits
-
-- Max media items per request: `3`
-- Max upload size: `10MB`
-
----
-
-## Quick Start Examples
-
-### File Upload: Single File (Image Or Video)
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-	-H "X-API-Key: YOUR_API_KEY" \
-	-F "file=@/path/to/media.jpg" \
-	-F "analysis_mode=fast"
-```
-
-```python
-import requests
-
-API_KEY = "YOUR_API_KEY"
-
-with open("media.jpg", "rb") as media_file:
-    response = requests.post(
-        "https://geoseeer.com/api/v1/analyze",
-        headers={"X-API-Key": API_KEY},
-        files={"file": media_file},
-        data={"analysis_mode": "fast"}
-    )
-
-result = response.json()
-print(result["locations"][0]["address"])
-```
-
-```javascript
-const selectedFile = fileInput.files[0];
-const formData = new FormData();
-formData.append('file', selectedFile);
-formData.append('analysis_mode', 'fast');
-
-const response = await fetch('https://geoseeer.com/api/v1/analyze', {
-	method: 'POST',
-	headers: { 'X-API-Key': 'YOUR_API_KEY' },
-	body: formData
-});
-
-const result = await response.json();
-console.log(result.locations[0].address);
-```
-
-### File Upload: Multiple Images
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-	-H "X-API-Key: YOUR_API_KEY" \
-	-F "files=@front.jpg" \
-	-F "files=@side.jpg" \
-	-F "files=@detail.jpg" \
-	-F "analysis_mode=fast"
-```
-
-### URL Input: Single URL (Image Or Video)
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-	-H "X-API-Key: YOUR_API_KEY" \
-	-H "Content-Type: application/json" \
-	-d '{
-		"url": "https://example.com/photo.jpg",
-		"analysis_mode": "fast"
-	}'
-```
-
-### URL Input: Multiple Image URLs
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-	-H "X-API-Key: YOUR_API_KEY" \
-	-H "Content-Type: application/json" \
-	-d '{
-		"urls": [
-			"https://example.com/front.jpg",
-			"https://example.com/side.jpg",
-			"https://example.com/detail.jpg"
-		],
-		"analysis_mode": "fast"
-	}'
-```
-
-### Event Mode: JSON Non-Streaming
-
-```bash
-curl -X POST https://geoseeer.com/api/v1/analyze \
-	-H "X-API-Key: YOUR_API_KEY" \
-	-H "Content-Type: application/json" \
-	-d '{
-		"analysis_mode": "event",
-		"event_text": "Last FIFA World Cup",
-		"stream": false
-	}'
-```
-
-### Event Mode: JSON Streaming
-
-```bash
-curl -N -X POST https://geoseeer.com/api/v1/analyze \
-	-H "X-API-Key: YOUR_API_KEY" \
-	-H "Content-Type: application/json" \
-	-d '{
-		"analysis_mode": "event",
-		"event_text": "Last FIFA World Cup",
-		"stream": true
-	}'
-```
-
-### Event Mode Success Response
+Use `url` for one URL or `urls` for an array of URLs pointing to media. The
+aliases `image_url` and `image_urls` remain accepted. Use `user_context` for
+optional clues, subject to the same 500-character limit.
 
 ```json
 {
-	"status": "success",
-	"locations": [
-		{
-			"latitude": 25.420791,
-			"longitude": 51.4903763,
-			"confidence": 0.7,
-			"address": "Lusail, Qatar",
-			"reasoning": "The event text strongly suggests the 2022 FIFA World Cup in Qatar, with Lusail as the most likely match."
-		}
-	],
-	"processing_time": "4.4s",
-	"API_Requests_remaining": 108
+  "analysis_mode": "fast",
+  "url": "https://example.com/photo.jpg",
+  "user_context": "A coastal city"
 }
 ```
 
----
+### Event input
 
-## Response Format
-
-Canonical success responses include `locations` and `API_Requests_remaining`.
+Set `analysis_mode` to `event` and use `event_text` for the description. Event
+requests reject recognized media fields. The server also accepts `text` and
+then `user_context` as fallbacks for the description. The description may
+contain up to 500 characters after trimming. Event mode accepts JSON or form
+fields, with no file parts.
 
 ```json
 {
-	"status": "success",
-	"locations": [
-		{
-			"latitude": 48.8584,
-			"longitude": 2.2945,
-			"confidence": 0.95,
-			"address": "Eiffel Tower, Paris, France",
-			"reasoning": "The image shows the Eiffel Tower from Trocadero gardens..."
-		},
-		{
-			"latitude": 48.853,
-			"longitude": 2.3499,
-			"confidence": 0.72,
-			"address": "Notre-Dame, Paris, France",
-			"reasoning": "Gothic cathedral architecture and urban layout align with Notre-Dame..."
-		}
-	],
-	"processing_time": "45.2s",
-	"API_Requests_remaining": 67
+  "analysis_mode": "event",
+  "event_text": "Final held at Lusail Stadium in Qatar"
 }
 ```
 
-### Contract Guarantees
+The legacy `return_debug` request flag is accepted. The public response is
+described below.
 
-- `locations` is the canonical success result field.
-- `API_Requests_remaining` is present in success responses.
-- `API_Requests_remaining` is a number.
-- `processing_time` is a string with an `s` suffix.
-- `status` is `"success"` for successful responses.
+## Synchronous response
 
----
+With `stream=false`, a successful analysis returns HTTP `200` and JSON.
 
-## Error Codes
+```json
+{
+  "status": "success",
+  "locations": [
+    {
+      "latitude": 25.0,
+      "longitude": 55.0,
+      "confidence": 0.7,
+      "address": "Example",
+      "reasoning": "..."
+    }
+  ],
+  "processing_time": "18.4s",
+  "API_Requests_remaining": 42
+}
+```
 
-- `400`: Invalid request.
-- `401`: Unauthorized.
-- `402`: Usage limit reached.
-- `403`: `free_plan_fast_mode_only`.
-  - Message: `Free plan supports fast mode only. Upgrade to Starter or Pro for agent/event modes.`
-- `413`: File too large.
-- `429`: Queue full.
-- `500`: Server error.
+Each location uses decimal degrees. `processing_time` is a duration string.
+`API_Requests_remaining` is an integer, the string `"unlimited"`, or `null`
+when a balance is unavailable. Marketplace synchronous responses omit this field.
+Some results include `early_exit: true` and an `exit_reason` such as
+`"gps_metadata"`.
 
----
+The default synchronous wait deadline is 330 seconds after the analysis is
+accepted. Allow additional time for upload or URL retrieval. If your connection
+times out or drops, the server may still be processing the request. Repeating
+the POST can start another analysis and consume another credit.
 
-## Streaming (SSE)
+### Confidence interpretation
 
-Set `stream: true` to receive Server-Sent Events.
+For verified Agent-mode locations, `confidence` is a geographic quality score.
+Treat it as a ranking signal with approximate geographic meaning. It has no
+calibrated probability or guaranteed radius. GPS metadata and visual-coordinate
+fallbacks use their own scoring policies.
 
-### Event Types
+The browser result profile can include `match_strength`, `confidence_method`,
+and `confidence_details`. For `geoseer_quality_v1`, the details include
+`method`, `quality_score`, and `match_strength`. Current API-key Analyze
+responses expose `confidence` in each location. Clients should tolerate
+optional confidence metadata if present.
 
-- `processing`: progress updates.
-- `branch_point`: parallel branch creation (mostly agent mode; usually absent in fast mode).
-- `branch_update`: branch status update (mostly agent mode; usually absent in fast mode).
-- `completed`: final result with `locations` and `API_Requests_remaining`.
-- `error`: processing error.
+## Streaming response
 
-### SSE Example
+Set `stream=true` to request `text/event-stream` over the same authenticated
+POST. Errors detected before stream setup return an HTTP error response. Once
+the stream starts, inspect its events for the outcome. The stream deadline is
+300 seconds from connection setup.
+
+Each event uses SSE framing with one JSON object in the `data` field.
+Numbered events repeat the sequence ID as a string in `last_event_id`.
+Keepalive comments have no JSON body. The external POST provides no reconnect
+or replay endpoint.
 
 ```text
-: keepalive
-
-id: 101
+id: 1
 event: processing
-data: {"type":"progress","message":"Running fast analysis","branch_id":"Satellite Agent","last_event_id":"101"}
-
-id: 102
-event: branch_point
-data: {"type":"branch_point","branch_point":{"fork_id":"candidate_search_methods","fork_label":"Candidate Search Methods","branches":[{"branch_id":"Search Agent","label":"Web Search","status":"processing"},{"branch_id":"Satellite Agent","label":"Satellite","status":"processing"}]},"last_event_id":"102"}
-
-id: 103
-event: branch_update
-data: {"type":"branch_update","branch_id":"Search Agent","status":"completed","message":"Found 2 candidates","last_event_id":"103"}
-
-id: 104
-event: completed
-data: {"type":"complete","result":{"status":"success","locations":[{"latitude":25.7735,"longitude":-80.2859,"address":"Miami, United States","confidence":0.6,"reasoning":"Visual clues suggest a likely match in this region."}],"processing_time":"24.9s","API_Requests_remaining":67},"last_event_id":"104"}
+data: {"type":"progress","message":"Starting fast analysis","last_event_id":"1"}
 ```
 
-### Python Streaming Example
+| SSE event | JSON payload |
+| --- | --- |
+| `processing` | `type: "progress"`, `message`, and optional progress metadata. The queued messages include “Starting <mode> analysis” and “Waiting for an available analysis slot.” |
+| `branch_point` | `type: "branch_point"` and branch metadata when emitted. |
+| `branch_update` | `type: "branch_update"` and branch metadata, including a normalized `status`. |
+| `completed` | `type: "complete"` and `result` containing the public result object. |
+| `error` | `type: "error"`, `error`, and `message`. A failed analysis includes `error_code`. A stream deadline includes `timeout_seconds`. |
+| `cancelled` | `type: "cancelled"`, `message`, and `error_code`. |
 
-```python
-import json
-import requests
+Treat a stream that closes without `completed` as having no successful result.
+The browser stream uses a separate profile with `candidates` and a `failed`
+event for failed or cancelled analyses.
 
-API_KEY = "YOUR_API_KEY"
+## Errors and credits
 
-def analyze_with_streaming(url):
-    response = requests.post(
-        "https://geoseeer.com/api/v1/analyze",
-        headers={
-            "X-API-Key": API_KEY,
-            "Content-Type": "application/json"
-        },
-        json={"url": url, "analysis_mode": "fast", "stream": True},
-        stream=True
-    )
+Application errors normally use the following JSON envelope. Proxies may send
+their own response body.
 
-    event_type = None
-    for raw_line in response.iter_lines(decode_unicode=True):
-        if not raw_line:
-            continue
-        if raw_line.startswith("event: "):
-            event_type = raw_line[7:]
-            continue
-        if not raw_line.startswith("data: "):
-            continue
-
-        payload = json.loads(raw_line[6:])
-        if event_type == "processing":
-            print(payload.get("message", "Processing"))
-        elif event_type == "completed":
-            result = payload.get("result", {})
-            print(result["locations"][0]["address"])
-            print("Remaining:", result.get("API_Requests_remaining"))
-            return result
-        elif event_type == "error":
-            raise RuntimeError(payload.get("error", "Streaming error"))
-```
-
-### JavaScript Streaming Example
-
-```javascript
-async function analyzeWithStreaming(fileUrl) {
-  const response = await fetch('https://geoseeer.com/api/v1/analyze', {
-    method: 'POST',
-    headers: {
-      'X-API-Key': 'YOUR_API_KEY',
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({
-      url: fileUrl,
-      analysis_mode: 'fast',
-      stream: true
-    })
-  });
-
-  const reader = response.body.getReader();
-  const decoder = new TextDecoder();
-  let buffer = '';
-  let eventType = '';
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-    const chunks = buffer.split('\n\n');
-    buffer = chunks.pop() || '';
-
-    for (const chunk of chunks) {
-      const lines = chunk.split('\n');
-      let dataPayload = null;
-
-      for (const line of lines) {
-        if (line.startsWith('event: ')) {
-          eventType = line.slice(7);
-        }
-        if (line.startsWith('data: ')) {
-          dataPayload = JSON.parse(line.slice(6));
-        }
-      }
-
-      if (!dataPayload) continue;
-
-      if (eventType === 'processing') {
-        console.log(dataPayload.message || 'Processing');
-      } else if (eventType === 'completed') {
-        const result = dataPayload.result || {};
-        console.log(result.locations?.[0]?.address);
-        console.log('Remaining:', result.API_Requests_remaining);
-        return result;
-      } else if (eventType === 'error') {
-        throw new Error(dataPayload.error || 'Streaming error');
-      }
-    }
+```json
+{
+  "success": false,
+  "error": {
+    "code": "invalid_field_value",
+    "message": "Invalid analysis_mode. Allowed values: agent, fast, event"
   }
 }
 ```
 
----
-
-## Error Codes
-
-| HTTP Code | Label |
+| HTTP status | Error code and meaning |
 | --- | --- |
-| `400` | Invalid request |
-| `401` | Unauthorized |
-| `402` | Usage limit reached |
-| `413` | File too large |
-| `429` | Queue full |
-| `500` | Server error |
+| `400` | `missing_required_field` or `invalid_field_value` for bad input, including unsupported media formats and oversized URL downloads. `event_invalid_input` denotes an invalid event. A failed analysis generally uses `invalid_request`. |
+| `401` | `missing_credentials` or `invalid_credentials` for missing or invalid API keys. |
+| `402` | `insufficient_api_credits` signals an exhausted allowance. `error.details` may include credit totals. |
+| `403` | `free_plan_fast_mode_only` denotes a mode the free plan cannot use. |
+| `413` | An oversized HTTP request can be rejected with this status. A body-parser failure caught inside Analyze may instead return `500`. |
+| `429` | `rate_limited` denotes a request limit or full analysis queue. Request-limit responses include `Retry-After` in seconds and `error.details.retry_after_seconds`. Queue-full responses may omit these. |
+| `500` | `internal_server_error` for an unexpected request or processing error. |
+| `503` | `service_unavailable` when analysis state is temporarily unavailable. |
+| `504` | `service_unavailable` when a synchronous analysis times out. |
 
----
+An accepted direct API analysis holds a credit until the outcome is known. A
+successful analysis charges the hold. Failed or cancelled work releases the
+hold through the normal credit lifecycle. Agent image rejection or a completed
+search without a usable location is a failed analysis (`400` for synchronous
+calls, `error` for external SSE). Those outcomes do not consume a successful
+analysis credit. Marketplace billing is handled by the marketplace.
 
-## Links
+## Processing storage and sharing
 
-- Website: `https://geoseeer.com`
-- API docs page: `https://geoseeer.com/api-docs`
-- Dashboard: `https://geoseeer.com/dashboard`
+Submitted media is held in temporary local files during processing. Analysis
+cleanup attempts to remove those files when work ends. When image search needs
+temporarily hosted imagery, cleanup attempts to delete the transformed copy
+after the search. Maximum retention periods for processing media and result
+records have not been verified. Saving or sharing a result is a separate action
+that persists result data and may include original media references. Analyze
+does not publish a share.
+
+## Executable examples
+
+Set `GEOSEER_API_KEY` in your shell. Use your own local media or a direct media
+URL you can submit to GeoSeer. The scripts accept `GEOSEER_BASE_URL` when testing
+against another compatible environment.
+
+[cURL](examples/external_api/analyze.sh) · [Python](examples/external_api/analyze.py) · [Node.js](examples/external_api/analyze.mjs)
+
+From the repository root:
+
+```bash
+# Single upload and a multi-image analysis with cURL
+examples/external_api/analyze.sh upload ./photo.jpg
+examples/external_api/analyze.sh upload ./front.jpg ./side.jpg
+
+# Stream progress and inspect the terminal event
+examples/external_api/analyze.sh stream ./photo.jpg
+
+# Upload or analyze an event in Python (requires requests)
+python3 examples/external_api/analyze.py --file ./photo.jpg
+python3 examples/external_api/analyze.py --event 'Final held at Lusail Stadium in Qatar'
+
+# Analyze a direct media URL with Node.js 22+
+node examples/external_api/analyze.mjs 'https://example.com/photo.jpg'
+```
+
+Replace the example URL with a reachable file. Event-mode calls require a paid
+API plan.
