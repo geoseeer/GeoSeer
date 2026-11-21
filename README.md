@@ -1,5 +1,7 @@
 # GeoSeer AI image geolocation — geoseeer.com 🌍🔍
 
+<!-- mcp-name: io.github.geoseeer/geoseer -->
+
 [GeoSeer](https://geoseeer.com) analyzes images, multiple image clues, videos, and real-world event descriptions to suggest locations and explain the clues behind them. **Fast** provides rapid estimation, **Agent** uses tools and multi-step reasoning for a more extensive search, and **Event** investigates locations from text descriptions.
 
 > Upload a photo, image set, or video, or enter an event description → Review location candidates with coordinates, addresses, and reasoning.
@@ -119,6 +121,41 @@ geoseeer analyze --event-text "Final held at Lusail Stadium in Qatar"
 See the [CLI guide](https://github.com/geoseeer/GeoSeer/blob/main/API.md#command-line) for input options, output formats, and exit codes.
 
 ---
+
+## Local MCP server
+
+Install the optional MCP extra:
+
+```sh
+python -m pip install 'geoseeer[mcp]>=0.3.0'
+```
+
+Set `GEOSEER_API_KEY` in the environment inherited by your MCP host. Configure
+its stdio command as the absolute path to the installed `geoseeer` executable
+and its arguments as `["mcp"]`. The same configuration can be used with
+MCP Inspector by selecting **STDIO**, setting **Command** to the executable,
+and entering `mcp` under **Arguments**. Use the host's environment or secret
+settings for the API key.
+
+`geolocate_media` accepts exactly one `file` path or direct media `url`, plus
+optional `context`. It sends the media or URL and context to GeoSeer in Fast mode.
+A successful call consumes API allowance. The tool returns a short summary
+and structured location candidates. Confidence ranks candidates and should
+not be read as a probability.
+
+Use a Node.js version supported by [MCP Inspector](https://github.com/modelcontextprotocol/inspector)
+to check tool discovery.
+
+```sh
+npx @modelcontextprotocol/inspector --cli "/absolute/path/to/geoseeer" mcp --method tools/list
+```
+
+Tool discovery works without a key. Set `GEOSEER_API_KEY` before calling
+`geolocate_media`.
+
+The [registry manifest](server.json) describes the package's stdio launch
+configuration. An authorized maintainer can publish it after publishing the
+package to PyPI.
 
 ## Pricing
 

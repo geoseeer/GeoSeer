@@ -4,13 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "geoseeer"
-version = "0.2.0"
+version = "0.3.0"
 description = "Python client and CLI for the GeoSeer geolocation API"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 license-files = ["LICENSE"]
 dependencies = ["requests>=2.32.5,<3"]
+
+[project.optional-dependencies]
+mcp = ["mcp>=2.3,<3"]
 
 [project.scripts]
 geoseeer = "geoseeer.cli:main"

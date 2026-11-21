@@ -15,7 +15,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Run the CLI and return a process exit status."""
     parser = argparse.ArgumentParser(prog="geoseeer", description="GeoSeer geolocation API CLI.")
     parser.add_argument("--version", action="version", version=f"%(prog)s {version('geoseeer')}")
-    commands = parser.add_subparsers(required=True)
+    commands = parser.add_subparsers(dest="command", required=True)
     analyze = commands.add_parser(
         "analyze",
         help="Analyze media or an event description.",
@@ -34,7 +34,19 @@ def main(argv: Sequence[str] | None = None) -> int:
     analyze.add_argument("--mode", choices=("fast", "agent"), help="Media analysis mode (default: fast).")
     analyze.add_argument("--context", help="Optional context for media analysis.")
     analyze.add_argument("--stream", action="store_true", help="Print each streamed event as one line of JSON.")
+    commands.add_parser("mcp", help="Run the local MCP server over stdio.")
     args = parser.parse_args(argv)
+
+    if args.command == "mcp":
+        try:
+            from .mcp_server import run
+        except ModuleNotFoundError as exc:
+            if exc.name != "mcp":
+                raise
+            print("geoseeer: Install the MCP extra with pip install 'geoseeer[mcp]'.", file=sys.stderr)
+            return 2
+        run()
+        return 0
 
     if args.event_text is not None and (args.mode is not None or args.context is not None):
         analyze.error("--mode and --context are only available with --file or --url.")
