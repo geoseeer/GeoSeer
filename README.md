@@ -88,7 +88,23 @@ curl -X POST https://geoseeer.com/api/v1/analyze \
   -F "user_context=Beach photo from summer 2025"
 ```
 
-See the full [API Documentation](https://geoseeer.com/api-docs) or our [API.md](API.md) for detailed reference.
+### Python SDK
+
+Install `geoseeer` on Python 3.11 or later and set `GEOSEER_API_KEY` to your GeoSeer API key.
+
+```bash
+pip install geoseeer
+```
+
+```python
+from geoseeer import GeoSeer
+
+client = GeoSeer()
+result = client.analyze(files="photo.jpg", context="A coastal city")
+print(result["locations"])
+```
+
+See the [Python SDK guide](https://github.com/geoseeer/GeoSeer/blob/main/API.md#python-sdk) for URL input, Event mode, and streaming, or the [API documentation](https://geoseeer.com/api-docs) for the full HTTP reference.
 
 ---
 

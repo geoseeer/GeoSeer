@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geoseeer"
+version = "0.1.0"
+description = "Python client for the GeoSeer geolocation API"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+license-files = ["LICENSE"]
+dependencies = ["requests>=2.32.5,<3"]
+
+[project.urls]
+Homepage = "https://geoseeer.com"
+Documentation = "https://github.com/geoseeer/GeoSeer/blob/main/API.md#python-sdk"
+Source = "https://github.com/geoseeer/GeoSeer"

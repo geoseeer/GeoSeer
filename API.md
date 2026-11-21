@@ -205,6 +205,48 @@ records have not been verified. Saving or sharing a result is a separate action
 that persists result data and may include original media references. Analyze
 does not publish a share.
 
+## Python SDK
+
+The `geoseeer` package supports Python 3.11 and later. Install it with `pip install geoseeer` after the first release, or run `python -m pip install .` from this repository to try the current source.
+
+Set `GEOSEER_API_KEY` or pass `api_key` to `GeoSeer`. Use `base_url` or `GEOSEER_BASE_URL` to target a compatible API with a different base URL, including its `/api/v1` path.
+
+```python
+from geoseeer import GeoSeer
+
+client = GeoSeer()
+result = client.analyze(files=["front.jpg", "side.jpg"], mode="agent")
+result = client.analyze(urls="https://example.com/photo.jpg")
+result = client.analyze(event_text="Final held at Lusail Stadium in Qatar")
+```
+
+`files` and `urls` accept a single item or up to three items. Media calls default to Fast mode and accept optional `context`. Event mode and Agent mode require a paid plan. `analyze()` returns the API's JSON object as a dictionary.
+
+```python
+with client.stream(files="photo.jpg") as events:
+    for event in events:
+        if event["type"] == "complete":
+            print(event["result"]["locations"])
+        elif event["type"] in {"error", "cancelled"}:
+            print(event.get("message", event.get("error", event["type"])))
+```
+
+HTTP errors raise `geoseeer.APIError` with `status_code`, `code`, `details`, and `retry_after` where available. Invalid responses and streams that end without a terminal event raise `geoseeer.GeoSeerError`. Network errors propagate from `requests`. Both methods send a single analysis request without automatic retries.
+
+### Publishing the SDK
+
+For automated releases, add a GitHub Actions Trusted Publisher in the PyPI project's publishing settings. If the project does not exist yet, add a pending publisher in [PyPI account settings](https://pypi.org/manage/account/publishing/). Use these values for either setup.
+
+| PyPI field | Value |
+| --- | --- |
+| PyPI project name | `geoseeer` |
+| Owner | `geoseeer` |
+| Repository name | `GeoSeer` |
+| Workflow name | `publish.yml` |
+| Environment name | `pypi` |
+
+To publish a new version, update `pyproject.toml` and push a matching tag prefixed with `v`. The workflow builds the wheel and source distribution, checks both, runs the client tests against the installed wheel, and publishes through Trusted Publishing.
+
 ## Executable examples
 
 Set `GEOSEER_API_KEY` in your shell. Use your own local media or a direct media
