@@ -7,6 +7,34 @@ store and keep it out of browser code.
 
 [OpenAPI document](openapi.json)
 
+## Health and queue status
+
+- `GET /api/v1/health` is an unauthenticated API and database connectivity check.
+  HTTP `200` means the application answered and its database check passed.
+  HTTP `503` means the database check failed or was unavailable. This check
+  does not run an analysis or probe downstream analysis providers.
+- `GET /api/v1/queue` requires `X-API-Key` and returns a snapshot for the
+  responding application worker. It does not start an analysis, reserve a
+  slot, or consume credits. Missing or invalid keys return `401`. If key
+  validation is unavailable, the endpoint returns `503`.
+
+```json
+{
+  "scope": "worker",
+  "status": "accepting",
+  "queued_jobs": 3,
+  "queue_remaining": 17,
+  "max_queued_jobs": 20,
+  "max_concurrent_jobs": 2
+}
+```
+
+The queue status is `accepting`, `full`, `draining`, or `uninitialized`.
+An uninitialized worker returns just `scope` and `status`. Queue counts
+cover waiting jobs. Different workers can report different values, and the
+next analysis request may reach a different worker. All four queue states
+return HTTP `200`. Analyze still makes its own admission decision.
+
 ## Request limits and supported formats
 
 - Submit up to three media items as clues for one analysis. The API returns
@@ -207,7 +235,7 @@ does not publish a share.
 
 ## Python SDK
 
-The published [`geoseeer` package](https://pypi.org/project/geoseeer/) supports Python 3.11 and later. Install it with `python -m pip install --upgrade geoseeer`, or run `python -m pip install .` from the repository to try its current source.
+The published [`geoseeer` package](https://pypi.org/project/geoseeer/) supports Python 3.11 and later. The verified release is **0.3.0**. Install it with `python -m pip install geoseeer==0.3.0`, or run `python -m pip install .` from the repository to try its current source.
 
 Set `GEOSEER_API_KEY` or pass `api_key` to `GeoSeer`. Use `base_url` or `GEOSEER_BASE_URL` to target a compatible API with a different base URL, including its `/api/v1` path.
 
@@ -249,6 +277,39 @@ Choose one input type per command. Repeat `--file` or `--url` up to three times 
 
 The CLI writes the JSON result to standard output. With `--stream`, it writes one JSON object per line as events arrive, including the terminal event. Diagnostics go to standard error. Exit status `0` indicates success, `1` indicates a request, file, or stream failure, `2` indicates invalid usage or a missing API key, and `130` indicates an interrupt.
 
+## Local MCP server
+
+The optional MCP adapter is included in `geoseeer` 0.3.0 and later and requires Python 3.11+. Install it in the environment used by your MCP host:
+
+```bash
+python -m pip install 'geoseeer[mcp]==0.3.0'
+```
+
+Configure your host's local **stdio** server with these values:
+
+| Setting | Value |
+| --- | --- |
+| Command | Absolute path to the installed `geoseeer` executable, for example `/absolute/path/to/geoseeer` |
+| Arguments | `["mcp"]` |
+| Environment / secret | `GEOSEER_API_KEY` set to your GeoSeer API key |
+
+Use the executable from the environment where you installed the MCP extra. The host launches `geoseeer mcp` locally; there is no hosted MCP server URL to enter. Keep the key in your host's environment or secret settings. Tool discovery works without a key; a tool call requires it.
+
+The `geolocate_media` tool accepts exactly one `file` path or direct HTTP(S) media `url`, plus optional `context` of up to 500 characters after trimming:
+
+```json
+{
+  "url": "https://example.com/photo.jpg",
+  "context": "A coastal city"
+}
+```
+
+Replace the example URL with reachable media. A local `file` must be readable by the MCP process, use a supported media suffix, and be smaller than 10 MiB to leave room for multipart overhead. The API's total request and URL-download limits still apply.
+
+MCP supports **Fast mode only**, with one image or video per call. Use the SDK, CLI, or HTTP API for multiple image clues, Agent mode, or Event text. The adapter sends the media or URL and context to `https://geoseeer.com/api/v1`; it does not use `GEOSEER_BASE_URL`. Successful analysis consumes API allowance. A timeout or lost connection may leave an analysis running, so repeating a call can start another analysis.
+
+The result contains a short summary and structured location candidates. Confidence ranks candidates; it is not a calibrated probability. The repository's [MCP section](https://github.com/geoseeer/GeoSeer#local-mcp-server) also covers Inspector discovery. Installation through PyPI and local stdio configuration do not require a registry listing.
+
 ## Publishing the package
 
 For automated releases, add a GitHub Actions Trusted Publisher in the PyPI project's publishing settings. If the project does not exist yet, add a pending publisher in [PyPI account settings](https://pypi.org/manage/account/publishing/). Use these values for either setup.
@@ -261,7 +322,7 @@ For automated releases, add a GitHub Actions Trusted Publisher in the PyPI proje
 | Workflow name | `publish.yml` |
 | Environment name | `pypi` |
 
-To publish a new version, update `pyproject.toml` and push a matching tag prefixed with `v`. The workflow builds the wheel and source distribution, checks both, tests the SDK and CLI against the installed wheel, and publishes through Trusted Publishing.
+To publish a new version, update `pyproject.toml` and push a matching tag prefixed with `v`. The workflow builds the wheel and source distribution, checks both, tests the SDK, CLI, and MCP adapter against the installed wheel, and publishes through Trusted Publishing.
 
 ## Executable examples
 

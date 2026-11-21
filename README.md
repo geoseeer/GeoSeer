@@ -124,7 +124,7 @@ See the [CLI guide](https://github.com/geoseeer/GeoSeer/blob/main/API.md#command
 
 ## Local MCP server
 
-Install the optional MCP extra:
+Install the optional MCP extra (Python 3.11+):
 
 ```sh
 python -m pip install 'geoseeer[mcp]>=0.3.0'
@@ -152,6 +152,8 @@ npx @modelcontextprotocol/inspector --cli "/absolute/path/to/geoseeer" mcp --met
 
 Tool discovery works without a key. Set `GEOSEER_API_KEY` before calling
 `geolocate_media`.
+
+See the [MCP setup guide](https://github.com/geoseeer/GeoSeer/blob/main/API.md#local-mcp-server) for input limits and result handling.
 
 The [registry manifest](server.json) describes the package's stdio launch
 configuration. An authorized maintainer can publish it after publishing the
